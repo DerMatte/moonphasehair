@@ -9,7 +9,13 @@ export default async function MoonPage() {
 
   return (
     <main className='flex flex-col items-center justify-center gap-8 pt-24 min-h-screen pb-48'>
-        <h1 className="text-4xl font-bold mb-8 text-center">Moon Phase Tracker</h1>
+        <div className="mb-24">
+          <h1 className="text-4xl font-bold mb-8 text-center">Moon Phase Hair Tracker</h1>
+          
+          <h2 className="text-md text-center">
+            Learn how the moon phase affects your hair growth and styling.
+          </h2>
+        </div>
         
         <MoonPhase />
 
