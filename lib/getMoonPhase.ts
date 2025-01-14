@@ -3,7 +3,7 @@ import { Moon } from 'lunarphase-js';
 export async function getMoonPhase(city: string = 'Unknown', country: string = 'Unknown') {
   const currentDate = new Date();
   const moonPhase = Moon.lunarPhase(currentDate);
-  const illumination = Moon.illuminationPercentage(currentDate);
+  const illumination = Moon.lunarIlluminationPercent(currentDate);
 
   // Calculate the next moon phase
   const moonPhases = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent'];
