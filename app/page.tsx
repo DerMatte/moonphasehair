@@ -1,33 +1,24 @@
-import MoonPhaseDisplay from '@/components/MoonPhaseDisplay';
+import MoonPhase from '@/components/MoonPhase';
+import { MoreInfo } from '@/components/MoreInfo';
 import { headers } from 'next/headers';
-import { getMoonPhase } from '@/lib/getMoonPhase';
 
-export default async function HomePage() {
-  try {
-    const headersList = await headers();
-    const city = headersList.get('x-vercel-ip-city') || 'Unknown';
-    const country = headersList.get('x-vercel-ip-country') || 'Unknown';
-    
-    const data = await getMoonPhase(city, country);
+export default async function MoonPage() {
+  const headersList = await headers();
+  const city = headersList.get('x-vercel-ip-city') || 'Unknown';
+  const country = headersList.get('x-vercel-ip-country') || 'Unknown';
 
-    return (
-      <main className='flex flex-col items-center justify-center gap-8 pt-24'>
+  return (
+    <main className='flex flex-col items-center justify-center gap-8 pt-24 min-h-screen pb-48'>
         <h1 className="text-4xl font-bold mb-8 text-center">Moon Phase Tracker</h1>
-        <MoonPhaseDisplay 
-          location={data.location}
-          currentPhase={data.currentPhase}
-          nextPhase={data.nextPhase}
-        />
+        
+        <MoonPhase />
+
+        <div className="mt-8">
+          <p>City: {city}</p>
+          <p>Country: {country}</p>
+        </div>
+
+        <MoreInfo />
       </main>
-    );
-  } catch (error) {
-    console.error('Error calculating moon phase data:', error);
-    return (
-      <main className='flex flex-col items-center justify-center gap-8 pt-24'>
-        <h1 className="text-4xl font-bold mb-8 text-center">Moon Phase Tracker</h1>
-        <p className="text-red-500">Error: Failed to calculate moon phase data. Please try again later.</p>
-      </main>
-    );
-  }
+  );
 }
-
