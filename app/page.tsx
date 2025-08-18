@@ -1,8 +1,5 @@
 
-import Image from 'next/image';
 import { getMoonPhaseWithTiming, MoonPhaseRecommendations } from '@/lib/MoonPhaseCalculator';
-import MoonIconPlaceholder from '@/public/MoonImageContainer.png';
-import LocationInfo from './LocationInfo';
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +10,94 @@ import {
 import { formatDateTime } from "@/lib/utils";
 
 
+
+// Big moon phase component using moon-pattern.png
+function MoonPhaseDisplay({ phase }: { phase: number }) {
+  // Use viewBox units instead of pixels for better scaling
+  const viewBoxSize = 100;
+  const radius = viewBoxSize / 2;
+  
+  const calculatePath = (phase: number) => {
+    if (phase === 0 || phase === 1) {
+      // New moon or start of cycle - full circle
+      return `M ${radius} 0 A ${radius} ${radius} 0 1 1 ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 1 ${radius} 0`;
+    } else if (phase === 0.5) {
+      // Full moon - no dark overlay
+      return '';
+    } else if (phase < 0.5) {
+      // Waxing phases
+      const offset = Math.cos(phase * 2 * Math.PI) * radius;
+      return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${viewBoxSize} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
+    } else {
+      // Waning phases
+      const offset = Math.cos(phase * 2 * Math.PI) * radius;
+      return `M ${radius} 0 A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 0 : 1} ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 0 ${radius} 0`;
+    }
+  };
+  
+  return (
+    <div className="relative w-full max-w-[400px] sm:max-w-[500px] md:max-w-[600px] lg:max-w-[700px] aspect-square mx-auto">
+      {/* Outer glow effect */}
+      <div className="absolute -inset-[10%] rounded-full bg-gradient-to-r from-blue-200/20 via-white/30 to-blue-200/20 blur-2xl animate-pulse" />
+      
+      {/* Moon container with border */}
+      <div className="relative w-full h-full rounded-full border-2 border-gray-300/30 p-[2%]">
+        {/* Moon texture background */}
+        <div 
+          className="relative w-full h-full rounded-full overflow-hidden"
+          style={{
+            backgroundImage: 'url(/moon-pattern.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'brightness(1.1) contrast(1.2)',
+          }}
+        >
+          {/* Dark overlay for the moon phase */}
+          <svg 
+            width="100%" 
+            height="100%" 
+            viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} 
+            preserveAspectRatio="xMidYMid meet"
+            className="absolute inset-0"
+          >
+            <title>Moon phase visualization</title>
+            <defs>
+              <mask id={`moonPhaseMask-${phase}`}>
+                <rect width={viewBoxSize} height={viewBoxSize} fill="white" />
+                {calculatePath(phase) && (
+                  <path d={calculatePath(phase)} fill="black" />
+                )}
+              </mask>
+              <filter id={`shadowFilter-${phase}`}>
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
+                <feOffset dx="0.5" dy="0.5" result="offsetblur"/>
+                <feFlood floodColor="#171717" floodOpacity="0.8"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                  <feMergeNode/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <rect 
+              width={viewBoxSize} 
+              height={viewBoxSize} 
+              fill="rgba(0,0,0,0.85)" 
+              mask={`url(#moonPhaseMask-${phase})`} 
+              filter={`url(#shadowFilter-${phase})`} 
+            />
+          </svg>
+          
+          {/* Inner shadow for depth */}
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_30px_var(--tw-shadow-color)]" />
+        </div>
+      </div>
+      
+      {/* Bottom glow for extra effect */}
+      <div className="absolute -bottom-[10%] left-1/2 -translate-x-1/2 w-3/4 h-[10%] bg-neutral-200/20 blur-xl rounded-full" />
+    </div>
+  );
+}
 
 // Small moon icon component for visualizing phases
 function MoonIcon({ phase }: { phase: number }) {
@@ -111,17 +196,19 @@ export default function MoonHairDashboard() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto p-4">  
-      <div className="sm:flex sm:flex-row-reverse">
-        <Image src={MoonIconPlaceholder} alt="Moon Icon" className="mx-auto aspect-square mb-12 md:mb-8" />
-          <div className="sm:flex sm:flex-col sm:gap-15">
-            <div className="w-md inline-flex flex-col justify-start items-start gap-8 pb-16 sm:pb-0 sm:pt-16">
-              <h1 className="self-stretch justify-start text-3xl font-bold font-sans sm:text-5xl">Moon Hair Dashboard</h1>
-              <h2 className="self-stretch justify-start text-base font-normal font-mono text-balance">Intrinsic Knowledge from my favourite X Account.<br/>Cut your Hair according to the moon. Make sure to pass the knowledge on.</h2>
+      <div className="lg:flex lg:flex-row-reverse lg:items-center lg:gap-12">
+          <div className="mb-8 lg:mb-0 lg:flex-1">
+            <MoonPhaseDisplay phase={moonPhaseData.current.phaseNumber / 8} />
+          </div>
+          <div className="lg:flex-1 lg:flex lg:flex-col lg:gap-15">
+            <div className="w-md inline-flex flex-col justify-start items-start gap-8 pb-16 md:pb-0 md:pt-16">
+              <h1 className="self-stretch justify-start text-3xl font-bold font-sans md:text-5xl">Moon Hair Dashboard</h1>
+              <h2 className="self-stretch justify-start text-base font-normal font-mono text-balance">Intrinsic Knowledge from my favourite X Account.<br/><span className="italic">Cut your Hair according to the moon.</span> Make sure to pass the knowledge on and share it with your friends.</h2>
             </div>
             <div className="flex flex-col gap-4">
             <h3 className="text-2xl font-bold font-sans pb-4 md:pb-8">Current Phase: {moonPhaseData.current.name} </h3>
             <div className="flex flex-row gap-4">
-              <div className='text-5xl sm:text-6xl'>
+              <div className='text-5xl md:text-6xl'>
                 {moonPhaseData.current.emoji}
               </div>
               <div className="flex flex-col text-sm justify-center gap-2">
