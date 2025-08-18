@@ -1,5 +1,3 @@
-import { Copy } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -15,11 +13,15 @@ import {
 
 import InfoPicture from '@/public/Moon-Hair.png';
 import Image from 'next/image';
-export function MoreInfo() {
+import { InfoBox } from "@nsmr/pixelart-react";
+
+export function InfoButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="text-sm">More Info</Button>
+      <Button variant="ghost">
+          <InfoBox size={32} />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-screen overflow-y-auto">
         <DialogHeader>
