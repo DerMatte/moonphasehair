@@ -125,7 +125,7 @@ export default function LocationInfo() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center gap-2 text-sm text-neutral-600">
         <Pin size={32} />
         <span className="font-mono animate-pulse">Loading location...</span>
       </div>
@@ -134,7 +134,7 @@ export default function LocationInfo() {
 
   if (!location) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center gap-2 text-sm text-neutral-600">
         <Pin size={32} />
         <span className="font-mono">Location unavailable</span>
       </div>
@@ -146,7 +146,7 @@ export default function LocationInfo() {
     : `${location.city}, ${location.country}`;
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600">
+    <div className="flex items-center gap-2 text-sm text-neutral-600">
       <Pin size={32} />
       <span className="font-mono">
         {displayLocation}

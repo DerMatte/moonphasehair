@@ -19,7 +19,7 @@ export function InfoButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-      <Button variant="ghost">
+      <Button variant="ghost" className="p-0 m-0 flex-none gap-0">
           <InfoBox size={32} />
         </Button>
       </DialogTrigger>
