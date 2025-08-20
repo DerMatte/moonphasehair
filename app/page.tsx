@@ -97,7 +97,7 @@ export default function MoonHairDashboard() {
 										phaseValue={moonPhaseData.previous.phaseNumber / 8}
 										emoji={moonPhaseData.previous.emoji}
 										description={moonPhaseData.previous.description}
-										dateText={`Aug 15`}
+										dateText={`${formatDateTime(moonPhaseData.previous.startDate)} - ${formatDateTime(moonPhaseData.previous.endDate)}`}
 										action={
 											moonPhaseData.previous.action
 										}
@@ -115,7 +115,7 @@ export default function MoonHairDashboard() {
 											phaseValue={moonPhaseData.current.phaseNumber / 8}
 											emoji={moonPhaseData.current.emoji}
 											description={moonPhaseData.current.description}
-											dateText={`Since: ${formatDateTime(moonPhaseData.current.startDate)}`}
+											dateText={`${formatDateTime(moonPhaseData.current.startDate)} - ${formatDateTime(moonPhaseData.current.endDate)}`}
 											action={
 												moonPhaseData.current.action
 											}
@@ -131,7 +131,7 @@ export default function MoonHairDashboard() {
 										phaseValue={moonPhaseData.next.phaseNumber / 8}
 										emoji={moonPhaseData.next.emoji}
 										description={moonPhaseData.next.description}
-										dateText={`Aug 28 - Aug 30`}
+										dateText={`${formatDateTime(moonPhaseData.next.startDate)} - ${formatDateTime(moonPhaseData.next.endDate)}`}
 										action={
 											moonPhaseData.next.action
 										}
@@ -142,11 +142,12 @@ export default function MoonHairDashboard() {
 								<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
 									<MoonPhaseCard
 										title="Upcoming"
-										phase="Third Quarter"
-										phaseValue={0.75}
-										emoji="🌗"
-										description="Focused on volumizing and enhancing shine"
-										action={moonPhases[7].action}
+										phase={moonPhaseData.upcoming[0].name}
+										phaseValue={moonPhaseData.upcoming[0].phaseNumber / 8}
+										emoji={moonPhaseData.upcoming[0].emoji}
+										description={moonPhaseData.upcoming[0].description}
+										dateText={`${formatDateTime(moonPhaseData.upcoming[0].startDate)} - ${formatDateTime(moonPhaseData.upcoming[0].endDate)}`}
+										action={moonPhaseData.upcoming[0].action}
 									/>
 								</CarouselItem>
 
@@ -181,7 +182,7 @@ export default function MoonHairDashboard() {
 							phaseValue={moonPhaseData.previous.phaseNumber / 8}
 							emoji={moonPhaseData.previous.emoji}
 							description={moonPhaseData.previous.description}
-							dateText={`Aug 15`}
+							dateText={`${formatDateTime(moonPhaseData.previous.startDate)} - ${formatDateTime(moonPhaseData.previous.endDate)}`}
 							action={
 								moonPhaseData.previous.action
 							}
@@ -195,7 +196,7 @@ export default function MoonHairDashboard() {
 								phaseValue={moonPhaseData.current.phaseNumber / 8}
 								emoji={moonPhaseData.current.emoji}
 								description={moonPhaseData.current.description}
-								dateText={`Since: ${formatDateTime(moonPhaseData.current.startDate)}`}
+								dateText={`${formatDateTime(moonPhaseData.current.startDate)} - ${formatDateTime(moonPhaseData.current.endDate)}`}
 								action={
 									moonPhaseData.current.action
 								}
@@ -209,7 +210,7 @@ export default function MoonHairDashboard() {
 							phaseValue={moonPhaseData.next.phaseNumber / 8}
 							emoji={moonPhaseData.next.emoji}
 							description={moonPhaseData.next.description}
-							dateText={`Aug 28 - Aug 30`}
+							dateText={`${formatDateTime(moonPhaseData.next.startDate)} - ${formatDateTime(moonPhaseData.next.endDate)}`}
 							action={
 								moonPhaseData.next.action
 							}
@@ -218,11 +219,12 @@ export default function MoonHairDashboard() {
 						{/* Upcoming Phase */}
 						<MoonPhaseCard
 							title="Upcoming"
-							phase="Third Quarter"
-							phaseValue={0.75}
-							emoji="🌗"
-							description="Focused on volumizing and enhancing shine"
-							action={moonPhases[7].action}
+							phase={moonPhaseData.upcoming[0].name}
+							phaseValue={moonPhaseData.upcoming[0].phaseNumber / 8}
+							emoji={moonPhaseData.upcoming[0].emoji}
+							description={moonPhaseData.upcoming[0].description}
+							dateText={`${formatDateTime(moonPhaseData.upcoming[0].startDate)} - ${formatDateTime(moonPhaseData.upcoming[0].endDate)}`}
+							action={moonPhaseData.upcoming[0].action}
 						/>
 					</div>
 				</div>
