@@ -46,21 +46,78 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
   const nextPhaseNumber = (phaseNumber + 1) % 8;
   const previousPhaseNumber = phaseNumber === 0 ? 7 : phaseNumber - 1;
   
+  // Calculate previous phase dates
+  const previousPhaseStart = new Date(currentPhaseStart);
+  previousPhaseStart.setDate(currentPhaseStart.getDate() - phaseDuration);
+  const previousPhaseEnd = new Date(currentPhaseStart);
+  previousPhaseEnd.setDate(currentPhaseStart.getDate() - 1);
+  
+  // Calculate next phase dates
+  const nextPhaseStart = new Date(currentPhaseEnd);
+  nextPhaseStart.setDate(currentPhaseEnd.getDate() + 1);
+  const nextPhaseEnd = new Date(nextPhaseStart);
+  nextPhaseEnd.setDate(nextPhaseStart.getDate() + phaseDuration);
+
+  // Calculate upcoming phases (next 2-3 phases after the immediate next)
+  const upcomingPhases = [];
+  for (let i = 2; i <= 4; i++) {
+    const upcomingPhaseNumber = (phaseNumber + i) % 8;
+    const upcomingPhaseStart = new Date(currentPhaseStart);
+    upcomingPhaseStart.setDate(currentPhaseStart.getDate() + (phaseDuration * i));
+    const upcomingPhaseEnd = new Date(upcomingPhaseStart);
+    upcomingPhaseEnd.setDate(upcomingPhaseStart.getDate() + phaseDuration);
+    
+    upcomingPhases.push({
+      ...moonPhases[upcomingPhaseNumber],
+      phaseNumber: upcomingPhaseNumber,
+      startDate: upcomingPhaseStart,
+      endDate: upcomingPhaseEnd,
+      date: upcomingPhaseStart,
+      phase: moonPhases[upcomingPhaseNumber].phaseValue,
+    });
+  }
+  
+  // Generate all phases with dates for the current lunar cycle
+  const allPhasesWithDates = moonPhases.map((phase, index) => {
+    const phaseStart = new Date(currentPhaseStart);
+    const offsetFromCurrent = (index - phaseNumber + 8) % 8;
+    phaseStart.setDate(currentPhaseStart.getDate() + (phaseDuration * offsetFromCurrent));
+    
+    const phaseEnd = new Date(phaseStart);
+    phaseEnd.setDate(phaseStart.getDate() + phaseDuration);
+    
+    return {
+      ...phase,
+      phaseNumber: index,
+      startDate: phaseStart,
+      endDate: phaseEnd,
+      date: phaseStart,
+    };
+  });
 
   return {
     current: {
       ...moonPhases[phaseNumber],
       phaseNumber,
       startDate: currentPhaseStart,
-      endDate: currentPhaseEnd
+      endDate: currentPhaseEnd,
+      advice: moonPhases[phaseNumber].advice
     },
     next: {
       ...moonPhases[nextPhaseNumber],
-      phaseNumber: nextPhaseNumber
+      phaseNumber: nextPhaseNumber,
+      startDate: nextPhaseStart,
+      endDate: nextPhaseEnd,
+      advice: moonPhases[nextPhaseNumber].advice
     },
     previous: {
       ...moonPhases[previousPhaseNumber],
-      phaseNumber: previousPhaseNumber
-    }
+      phaseNumber: previousPhaseNumber,
+      startDate: previousPhaseStart,
+      endDate: previousPhaseEnd,
+      advice: moonPhases[previousPhaseNumber].advice
+    },
+    upcoming: upcomingPhases,
+    allPhasesWithDates: allPhasesWithDates
   };
 }
