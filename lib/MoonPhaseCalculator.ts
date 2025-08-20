@@ -34,18 +34,42 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
   const synodic = 29.5305882; // days
   const phaseDuration = synodic / 8; // approximately 3.69 days per phase
   
-  // Calculate when this phase started
-  const currentPhaseStart = new Date(date);
-  currentPhaseStart.setDate(date.getDate() - Math.floor(phaseDuration / 2));
+  // Calculate more accurate phase timing
+  const calculatePhaseDate = (baseDate: Date, phaseOffset: number) => {
+    const newDate = new Date(baseDate);
+    newDate.setDate(baseDate.getDate() + (phaseOffset * phaseDuration));
+    return newDate;
+  };
+
+  // Calculate current phase timing
+  const currentPhaseStart = calculatePhaseDate(date, -0.5);
+  const currentPhaseEnd = calculatePhaseDate(date, 0.5);
   
-  // Calculate when this phase will end
-  const currentPhaseEnd = new Date(date);
-  currentPhaseEnd.setDate(date.getDate() + Math.floor(phaseDuration / 2));
-  
-  // Get next and previous phases
+  // Get next and previous phases with proper dates
   const nextPhaseNumber = (phaseNumber + 1) % 8;
   const previousPhaseNumber = phaseNumber === 0 ? 7 : phaseNumber - 1;
   
+  const nextPhaseStart = calculatePhaseDate(date, 0.5);
+  const nextPhaseEnd = calculatePhaseDate(date, 1.5);
+  
+  const previousPhaseStart = calculatePhaseDate(date, -1.5);
+  const previousPhaseEnd = calculatePhaseDate(date, -0.5);
+
+  // Calculate upcoming phases (next 3-4 phases after the immediate next one)
+  const upcoming = [];
+  for (let i = 2; i <= 5; i++) {
+    const upcomingPhaseNumber = (phaseNumber + i) % 8;
+    const upcomingDate = calculatePhaseDate(date, i - 0.5);
+    
+    upcoming.push({
+      name: moonPhases[upcomingPhaseNumber].name,
+      phase: moonPhases[upcomingPhaseNumber].phaseValue,
+      emoji: moonPhases[upcomingPhaseNumber].emoji,
+      description: moonPhases[upcomingPhaseNumber].description,
+      action: moonPhases[upcomingPhaseNumber].action,
+      date: upcomingDate
+    });
+  }
 
   return {
     current: {
@@ -56,11 +80,16 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
     },
     next: {
       ...moonPhases[nextPhaseNumber],
-      phaseNumber: nextPhaseNumber
+      phaseNumber: nextPhaseNumber,
+      startDate: nextPhaseStart,
+      endDate: nextPhaseEnd
     },
     previous: {
       ...moonPhases[previousPhaseNumber],
-      phaseNumber: previousPhaseNumber
-    }
+      phaseNumber: previousPhaseNumber,
+      startDate: previousPhaseStart,
+      endDate: previousPhaseEnd
+    },
+    upcoming: upcoming
   };
 }

@@ -16,18 +16,12 @@ export default async function LocationInfo() {
 
 	let locationData: LocationData | null = null;
 
-	try {
 		const res = await fetch(new URL("/api/location", baseUrl), {
 			cache: "no-store",
 		});
 		if (res.ok) {
 			locationData = await res.json();
 		}
-	} catch (error) {
-		console.error("Failed to fetch /api/location:", error);
-	}
-
-	console.log(locationData);
 
 	if (!locationData || !locationData.city) {
 		locationData = {
