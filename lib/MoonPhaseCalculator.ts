@@ -71,29 +71,53 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
       ...moonPhases[upcomingPhaseNumber],
       phaseNumber: upcomingPhaseNumber,
       startDate: upcomingPhaseStart,
-      endDate: upcomingPhaseEnd
+      endDate: upcomingPhaseEnd,
+      date: upcomingPhaseStart,
+      phase: moonPhases[upcomingPhaseNumber].phaseValue,
     });
   }
+  
+  // Generate all phases with dates for the current lunar cycle
+  const allPhasesWithDates = moonPhases.map((phase, index) => {
+    const phaseStart = new Date(currentPhaseStart);
+    const offsetFromCurrent = (index - phaseNumber + 8) % 8;
+    phaseStart.setDate(currentPhaseStart.getDate() + (phaseDuration * offsetFromCurrent));
+    
+    const phaseEnd = new Date(phaseStart);
+    phaseEnd.setDate(phaseStart.getDate() + phaseDuration);
+    
+    return {
+      ...phase,
+      phaseNumber: index,
+      startDate: phaseStart,
+      endDate: phaseEnd,
+      date: phaseStart,
+    };
+  });
 
   return {
     current: {
       ...moonPhases[phaseNumber],
       phaseNumber,
       startDate: currentPhaseStart,
-      endDate: currentPhaseEnd
+      endDate: currentPhaseEnd,
+      advice: moonPhases[phaseNumber].advice
     },
     next: {
       ...moonPhases[nextPhaseNumber],
       phaseNumber: nextPhaseNumber,
       startDate: nextPhaseStart,
-      endDate: nextPhaseEnd
+      endDate: nextPhaseEnd,
+      advice: moonPhases[nextPhaseNumber].advice
     },
     previous: {
       ...moonPhases[previousPhaseNumber],
       phaseNumber: previousPhaseNumber,
       startDate: previousPhaseStart,
-      endDate: previousPhaseEnd
+      endDate: previousPhaseEnd,
+      advice: moonPhases[previousPhaseNumber].advice
     },
-    upcoming: upcomingPhases
+    upcoming: upcomingPhases,
+    allPhasesWithDates: allPhasesWithDates
   };
 }

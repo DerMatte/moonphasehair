@@ -8,8 +8,8 @@ import {
 	CarouselNext,
 	CarouselPrevious,
 } from "@/components/ui/carousel";
-import { formatDateTime } from "@/lib/utils";
-import { moonPhases } from "@/lib/consts";
+import { formatDateTime, formatDateWithTimezone } from "@/lib/utils";
+import { moonPhases, MoonPhaseRecommendations } from "@/lib/consts";
 import BigMoon from "@/components/BigMoon";
 import MoonPhaseCard from "@/components/MoonphaseCard";
 
@@ -24,8 +24,7 @@ export default function MoonHairDashboard() {
 	// Get moon phase timing information
 	const moonPhaseData = getMoonPhaseWithTiming(new Date());
 
-	// Get all moon phases
-	const allPhases = moonPhases;
+
 
 	return (
 		<div className="">
@@ -96,10 +95,13 @@ export default function MoonHairDashboard() {
 										phase={moonPhaseData.previous.name}
 										phaseValue={moonPhaseData.previous.phaseNumber / 8}
 										emoji={moonPhaseData.previous.emoji}
-										description={moonPhaseData.previous.description}
-										dateText={`${formatDateTime(moonPhaseData.previous.startDate)} - ${formatDateTime(moonPhaseData.previous.endDate)}`}
+										description={moonPhaseData.previous.advice}
+										dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
 										action={
-											moonPhaseData.previous.action
+											MoonPhaseRecommendations[
+												moonPhaseData.previous
+													.name as keyof typeof MoonPhaseRecommendations
+											]?.action
 										}
 									/>
 								</CarouselItem>
@@ -114,10 +116,13 @@ export default function MoonHairDashboard() {
 											phase={moonPhaseData.current.name}
 											phaseValue={moonPhaseData.current.phaseNumber / 8}
 											emoji={moonPhaseData.current.emoji}
-											description={moonPhaseData.current.description}
-											dateText={`${formatDateTime(moonPhaseData.current.startDate)} - ${formatDateTime(moonPhaseData.current.endDate)}`}
+											description={moonPhaseData.current.advice}
+											dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
 											action={
-												moonPhaseData.current.action
+												MoonPhaseRecommendations[
+													moonPhaseData.current
+														.name as keyof typeof MoonPhaseRecommendations
+												]?.action
 											}
 										/>
 									</div>
@@ -130,31 +135,47 @@ export default function MoonHairDashboard() {
 										phase={moonPhaseData.next.name}
 										phaseValue={moonPhaseData.next.phaseNumber / 8}
 										emoji={moonPhaseData.next.emoji}
-										description={moonPhaseData.next.description}
-										dateText={`${formatDateTime(moonPhaseData.next.startDate)} - ${formatDateTime(moonPhaseData.next.endDate)}`}
+										description={moonPhaseData.next.advice}
+										dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
 										action={
-											moonPhaseData.next.action
+											MoonPhaseRecommendations[
+												moonPhaseData.next
+													.name as keyof typeof MoonPhaseRecommendations
+											]?.action
 										}
 									/>
 								</CarouselItem>
 
 								{/* Upcoming Phases */}
-								<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
-									<MoonPhaseCard
-										title="Upcoming"
-										phase={moonPhaseData.upcoming[0].name}
-										phaseValue={moonPhaseData.upcoming[0].phaseNumber / 8}
-										emoji={moonPhaseData.upcoming[0].emoji}
-										description={moonPhaseData.upcoming[0].description}
-										dateText={`${formatDateTime(moonPhaseData.upcoming[0].startDate)} - ${formatDateTime(moonPhaseData.upcoming[0].endDate)}`}
-										action={moonPhaseData.upcoming[0].action}
-									/>
-								</CarouselItem>
+								{moonPhaseData.upcoming.slice(0, 2).map((upcoming) => (
+									<CarouselItem
+										key={`upcoming-${upcoming.name}-${upcoming.date.getTime()}`}
+										className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4"
+									>
+										<MoonPhaseCard
+											title="Upcoming"
+											phase={upcoming.name}
+											phaseValue={upcoming.phase}
+											emoji={upcoming.emoji}
+											description={
+												MoonPhaseRecommendations[
+													upcoming.name as keyof typeof MoonPhaseRecommendations
+												]?.description || ""
+											}
+											dateText={formatDateWithTimezone(upcoming.date)}
+											action={
+												MoonPhaseRecommendations[
+													upcoming.name as keyof typeof MoonPhaseRecommendations
+												]?.action
+											}
+										/>
+									</CarouselItem>
+								))}
 
 								{/* Additional moon phases */}
-								{allPhases.map((phase) => (
+								{moonPhaseData.allPhasesWithDates.map((phase) => (
 									<CarouselItem
-										key={phase.name}
+										key={`${phase.name}-${phase.date.getTime()}`}
 										className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4"
 									>
 										<MoonPhaseCard
@@ -162,8 +183,17 @@ export default function MoonHairDashboard() {
 											phase={phase.name}
 											phaseValue={phase.phaseValue}
 											emoji={phase.emoji}
-											description={phase.description || ""}
-											action={phase.action}
+											description={
+												MoonPhaseRecommendations[
+													phase.name as keyof typeof MoonPhaseRecommendations
+												]?.description || ""
+											}
+											dateText={`${formatDateWithTimezone(phase.startDate, false)} - ${formatDateWithTimezone(phase.endDate, false)}`}
+											action={
+												MoonPhaseRecommendations[
+													phase.name as keyof typeof MoonPhaseRecommendations
+												]?.action
+											}
 										/>
 									</CarouselItem>
 								))}
@@ -181,10 +211,13 @@ export default function MoonHairDashboard() {
 							phase={moonPhaseData.previous.name}
 							phaseValue={moonPhaseData.previous.phaseNumber / 8}
 							emoji={moonPhaseData.previous.emoji}
-							description={moonPhaseData.previous.description}
-							dateText={`${formatDateTime(moonPhaseData.previous.startDate)} - ${formatDateTime(moonPhaseData.previous.endDate)}`}
+							description={moonPhaseData.previous.advice}
+							dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
 							action={
-								moonPhaseData.previous.action
+								MoonPhaseRecommendations[
+									moonPhaseData.previous
+										.name as keyof typeof MoonPhaseRecommendations
+								]?.action
 							}
 						/>
 
@@ -195,10 +228,13 @@ export default function MoonHairDashboard() {
 								phase={moonPhaseData.current.name}
 								phaseValue={moonPhaseData.current.phaseNumber / 8}
 								emoji={moonPhaseData.current.emoji}
-								description={moonPhaseData.current.description}
-								dateText={`${formatDateTime(moonPhaseData.current.startDate)} - ${formatDateTime(moonPhaseData.current.endDate)}`}
+								description={moonPhaseData.current.advice}
+								dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
 								action={
-									moonPhaseData.current.action
+									MoonPhaseRecommendations[
+										moonPhaseData.current
+											.name as keyof typeof MoonPhaseRecommendations
+									]?.action
 								}
 							/>
 						</div>
@@ -209,23 +245,37 @@ export default function MoonHairDashboard() {
 							phase={moonPhaseData.next.name}
 							phaseValue={moonPhaseData.next.phaseNumber / 8}
 							emoji={moonPhaseData.next.emoji}
-							description={moonPhaseData.next.description}
-							dateText={`${formatDateTime(moonPhaseData.next.startDate)} - ${formatDateTime(moonPhaseData.next.endDate)}`}
+							description={moonPhaseData.next.advice}
+							dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
 							action={
-								moonPhaseData.next.action
+								MoonPhaseRecommendations[
+									moonPhaseData.next
+										.name as keyof typeof MoonPhaseRecommendations
+								]?.action
 							}
 						/>
 
-						{/* Upcoming Phase */}
-						<MoonPhaseCard
-							title="Upcoming"
-							phase={moonPhaseData.upcoming[0].name}
-							phaseValue={moonPhaseData.upcoming[0].phaseNumber / 8}
-							emoji={moonPhaseData.upcoming[0].emoji}
-							description={moonPhaseData.upcoming[0].description}
-							dateText={`${formatDateTime(moonPhaseData.upcoming[0].startDate)} - ${formatDateTime(moonPhaseData.upcoming[0].endDate)}`}
-							action={moonPhaseData.upcoming[0].action}
-						/>
+						{/* Upcoming Phases */}
+						{moonPhaseData.upcoming.slice(0, 1).map((upcoming) => (
+							<MoonPhaseCard
+								key={`mobile-upcoming-${upcoming.name}-${upcoming.date.getTime()}`}
+								title="Upcoming"
+								phase={upcoming.name}
+								phaseValue={upcoming.phase}
+								emoji={upcoming.emoji}
+								description={
+									MoonPhaseRecommendations[
+										upcoming.name as keyof typeof MoonPhaseRecommendations
+									]?.description || ""
+								}
+								dateText={formatDateWithTimezone(upcoming.date)}
+								action={
+									MoonPhaseRecommendations[
+										upcoming.name as keyof typeof MoonPhaseRecommendations
+									]?.action
+								}
+							/>
+						))}
 					</div>
 				</div>
 			</div>
