@@ -18,8 +18,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Todo
 
-- [ ] Update the big moon to show the actual moon phase 
-- [ ] fix the moon phase carousel 
-- [ ] add time and date to the moon phase carousel
+- [x] Update the big moon to show the actual moon phase 
+- [x] fix the moon phase carousel 
+- [x] add time and date to the moon phase carousel
 - [ ] update the big moon to show the azimuth and elevation of the moon
 - [ ] add timezone to the moon phase carousel & current phase info 

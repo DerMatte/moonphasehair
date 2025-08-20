@@ -45,7 +45,7 @@ export default function MoonHairDashboard() {
 							</h3>
 							<div className="flex flex-row gap-4">
 								<div className="text-5xl md:text-6xl">
-									{moonPhaseData.current.emoji}
+									{moonPhaseData.current.icon}
 								</div>
 								<div className="flex flex-col text-sm justify-center gap-2">
 									<p className="italic font-bold max-w-md text-balance">

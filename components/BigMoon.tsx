@@ -4,20 +4,24 @@ export default function BigMoon({ phase }: { phase: number }) {
 	const viewBoxSize = 100;
 	const radius = viewBoxSize / 2;
 
+	// Improved calculatePath function based on MoonIcon.tsx logic
 	const calculatePath = (phase: number) => {
-		if (phase === 0 || phase === 1) {
-			// New moon or start of cycle - full circle
+		// Normalize phase to 0-1 range
+		const normalizedPhase = phase % 1;
+		
+		if (normalizedPhase === 0 || normalizedPhase >= 0.99) {
+			// New moon - full dark overlay
 			return `M ${radius} 0 A ${radius} ${radius} 0 1 1 ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 1 ${radius} 0`;
-		} else if (phase === 0.5) {
+		} else if (normalizedPhase === 0.5) {
 			// Full moon - no dark overlay
 			return "";
-		} else if (phase < 0.5) {
-			// Waxing phases
-			const offset = Math.cos(phase * 2 * Math.PI) * radius;
+		} else if (normalizedPhase < 0.5) {
+			// Waxing phases - shadow recedes from right to left
+			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
 			return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${viewBoxSize} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
 		} else {
-			// Waning phases
-			const offset = Math.cos(phase * 2 * Math.PI) * radius;
+			// Waning phases - shadow advances from left to right  
+			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
 			return `M ${radius} 0 A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 0 : 1} ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 0 ${radius} 0`;
 		}
 	};
@@ -29,17 +33,14 @@ export default function BigMoon({ phase }: { phase: number }) {
 
 			{/* Moon container with border */}
 			<div className="relative w-full h-full rounded-full border-2 border-gray-300/30 p-[2%]">
-			{/* Cool Arrow in bottom left corner */}
-			<img
-						src="/CoolArrow.svg"
-						alt=""
-						className="absolute bottom-0 left-0 -translate-x-4 -translate-y-4 -z-10 w-1/2"
-						// style={{
-						// 	filter: "invert(1) brightness(0.8)",
-						// }}
-					/>
+				{/* Cool Arrow in bottom left corner */}
+				<img
+					src="/CoolArrow.svg"
+					alt=""
+					className="absolute bottom-0 left-0 -translate-x-4 -translate-y-4 -z-10 w-1/2"
+				/>
+				
 				{/* Moon texture background */}
-				{/* <div className="w-[476.04px] h-[476.04px] bg-blend-luminosity bg-gradient-to-bl from-zinc-300/50 to-neutral-500 rounded-full" /> */}
 				<div
 					className="relative w-full h-full rounded-full overflow-hidden"
 					style={{
@@ -49,7 +50,7 @@ export default function BigMoon({ phase }: { phase: number }) {
 						filter: "brightness(1.3) contrast(1.2)",
 					}}
 				>
-					{/* Dark overlay for the moon phase */}
+					{/* Simplified dark overlay for the moon phase */}
 					<svg
 						width="100%"
 						height="100%"
@@ -57,41 +58,38 @@ export default function BigMoon({ phase }: { phase: number }) {
 						preserveAspectRatio="xMidYMid meet"
 						className="absolute inset-0"
 					>
-						<title>Moon phase visualization</title>
+						<title>Moon phase visualization - Phase: {(phase * 100).toFixed(1)}%</title>
 						<defs>
-							<mask id={`moonPhaseMask-${phase}`}>
-								<rect width={viewBoxSize} height={viewBoxSize} fill="white" />
-								{calculatePath(phase) && (
-									<path d={calculatePath(phase)} fill="black" />
-								)}
-							</mask>
-							<filter id={`shadowFilter-${phase}`}>
-								<feGaussianBlur in="SourceAlpha" stdDeviation="1" />
-								<feOffset dx="0.5" dy="0.5" result="offsetblur" />
-								<feFlood floodColor="#171717" floodOpacity="0.8" />
-								<feComposite in2="offsetblur" operator="in" />
-								<feMerge>
-									<feMergeNode />
-									<feMergeNode in="SourceGraphic" />
-								</feMerge>
-							</filter>
+							{/* Improved gradient for more realistic shadow */}
+							<radialGradient id={`moonShadowGradient-${phase}`} cx="50%" cy="50%" r="50%">
+								<stop offset="0%" stopColor="rgba(0,0,0,0.7)" />
+								<stop offset="70%" stopColor="rgba(0,0,0,0.85)" />
+								<stop offset="100%" stopColor="rgba(0,0,0,0.95)" />
+							</radialGradient>
 						</defs>
-						<rect
-							width={viewBoxSize}
-							height={viewBoxSize}
-							fill="rgba(0,0,0,0.85)"
-							mask={`url(#moonPhaseMask-${phase})`}
-							filter={`url(#shadowFilter-${phase})`}
-						/>
+						
+						{/* Draw the shadow path if it exists */}
+						{calculatePath(phase) && (
+							<path 
+								d={calculatePath(phase)} 
+								fill={`url(#moonShadowGradient-${phase})`}
+								opacity="0.9"
+							/>
+						)}
 					</svg>
 
 					{/* Inner shadow for depth */}
-					<div className="absolute inset-0 rounded-full shadow-[inset_0_0_30px_var(--tw-shadow-color)]" />
+					<div className="absolute inset-0 rounded-full shadow-[inset_0_0_30px_rgba(0,0,0,0.3)]" />
 				</div>
 			</div>
 
 			{/* Bottom glow for extra effect */}
 			<div className="absolute -bottom-[10%] left-1/2 -translate-x-1/2 w-3/4 h-[10%] bg-neutral-200/20 blur-xl rounded-full" />
+			
+			{/* Debug info - remove in production */}
+			<div className="absolute hidden md:inline-block -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 font-mono">
+				Phase: {(phase * 100).toFixed(1)}%
+			</div>
 		</div>
 	);
 }
