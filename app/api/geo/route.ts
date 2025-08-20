@@ -8,7 +8,6 @@ export async function GET(request: Request) {
 
 	if (latitude && longitude) {
 		try {
-			// You'll need to add geo-tz to your project: `pnpm add geo-tz`
 			const { find } = await import("geo-tz");
 			const timezones = find(parseFloat(latitude), parseFloat(longitude));
 

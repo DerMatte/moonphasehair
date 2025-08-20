@@ -1,161 +1,71 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import { Pin } from "@nsmr/pixelart-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn, baseUrl } from "@/lib/utils";
 
 interface LocationData {
-  city: string;
-  country: string;
-  region?: string;
-  source: 'vercel' | 'browser' | 'ip' | 'default';
+	city: string;
+	country: string;
+	region?: string;
+	timezone?: string;
+	source?: string;
+	latitude?: number;
+	longitude?: number;
 }
 
-export default function LocationInfo() {
-  const [location, setLocation] = useState<LocationData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function LocationInfo() {
 
-  useEffect(() => {
-    let mounted = true;
+	let locationData: LocationData | null = null;
 
-    const detectLocation = async () => {
-      try {
-        // First try: Check if we're on Vercel and have geo headers via a simple fetch
-        try {
-          const response = await fetch('/api/location');
-          if (response.ok) {
-            const data = await response.json();
-            if (data.city && data.city !== 'Unknown' && mounted) {
-              setLocation({
-                city: data.city,
-                country: data.country || 'Unknown',
-                region: data.region,
-                source: 'vercel'
-              });
-              setIsLoading(false);
-              return;
-            }
-          }
-        } catch (apiError) {
-          console.warn('Vercel geo API failed:', apiError);
-        }
+	try {
+		const res = await fetch(new URL("/api/location", baseUrl), {
+			cache: "no-store",
+		});
+		if (res.ok) {
+			locationData = await res.json();
+		}
+	} catch (error) {
+		console.error("Failed to fetch /api/location:", error);
+	}
 
-        // Second try: Browser geolocation with reverse geocoding
-        if ('geolocation' in navigator) {
-          try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                timeout: 5000,
-                enableHighAccuracy: false
-              });
-            });
+	console.log(locationData);
 
-            const response = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
-            );
-            
-            if (response.ok) {
-              const geoData = await response.json();
-              if (mounted && geoData.city) {
-                setLocation({
-                  city: geoData.city || geoData.locality || 'Unknown City',
-                  country: geoData.countryName || 'Unknown Country',
-                  region: geoData.principalSubdivision,
-                  source: 'browser'
-                });
-                setIsLoading(false);
-                return;
-              }
-            }
-          } catch (geoError) {
-            console.warn('Browser geolocation failed:', geoError);
-          }
-        }
+	if (!locationData || !locationData.city) {
+		locationData = {
+			city: "Munich",
+			country: "Germany",
+			region: "Bavaria",
+			timezone: "Europe/Berlin",
+			source: "fallback",
+			latitude: 48.1351,
+			longitude: 11.582,
+		};
+	}
 
-        // Third try: IP-based geolocation
-        try {
-          const response = await fetch('https://ipapi.co/json/');
-          if (response.ok) {
-            const ipData = await response.json();
-            if (mounted && ipData.city && ipData.country_name) {
-              setLocation({
-                city: ipData.city,
-                country: ipData.country_name,
-                region: ipData.region,
-                source: 'ip'
-              });
-              setIsLoading(false);
-              return;
-            }
-          }
-        } catch (ipError) {
-          console.warn('IP geolocation failed:', ipError);
-        }
+	const displayLocation =
+		locationData.region && locationData.region !== locationData.city
+			? `${locationData.city}, ${locationData.region}, ${locationData.country}`
+			: `${locationData.city}, ${locationData.country}`;
 
-        // Final fallback
-        if (mounted) {
-          setLocation({
-            city: 'Munich',
-            country: 'Germany',
-            region: 'Bavaria',
-            source: 'default'
-          });
-          setIsLoading(false);
-        }
+	return (
+		<div className="flex items-center gap-2 text-sm text-neutral-600">
+			<Pin size={32} />
+			<span
+				className={cn(
+					"font-mono",
+					locationData.source === "fallback" && "text-orange-500 ml-1"
+				)}
+			>
+				{displayLocation}
+			</span>
+		</div>
+	);
+}
 
-      } catch (error) {
-        console.error('All location detection failed:', error);
-        if (mounted) {
-          setLocation({
-            city: 'Munich',
-            country: 'Germany',
-            region: 'Bavaria',
-            source: 'default'
-          });
-          setIsLoading(false);
-        }
-      }
-    };
-
-    detectLocation();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-neutral-600">
-        <Pin size={32} />
-        <span className="font-mono animate-pulse">Loading location...</span>
-      </div>
-    );
-  }
-
-  if (!location) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-neutral-600">
-        <Pin size={32} />
-        <span className="font-mono">Location unavailable</span>
-      </div>
-    );
-  }
-
-  const displayLocation = location.region && location.region !== location.city 
-    ? `${location.city}, ${location.region}, ${location.country}`
-    : `${location.city}, ${location.country}`;
-
-  return (
-    <div className="flex items-center gap-2 text-sm text-neutral-600">
-      <Pin size={32} />
-      <span className="font-mono">
-        {displayLocation}
-        {location.source === 'default' && (
-          <span className="text-xs text-orange-500 ml-1" title="Using default location">
-            (default)
-          </span>
-        )}
-      </span>
-    </div>
-  );
+export function LocationInfoSkeleton() {
+	return (
+		<div className="flex items-center gap-2 text-sm text-neutral-600">
+			<Pin size={32} />
+			<Skeleton className="w-16 h-3" />
+		</div>
+	);
 }

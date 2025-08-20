@@ -1,6 +1,5 @@
 import {
 	getMoonPhaseWithTiming,
-	MoonPhaseRecommendations,
 } from "@/lib/MoonPhaseCalculator";
 import {
 	Carousel,
@@ -11,6 +10,9 @@ import {
 } from "@/components/ui/carousel";
 import { formatDateTime } from "@/lib/utils";
 import moonPattern from "@/public/moon-pattern.png";
+
+import { moonPhases } from "@/lib/consts";
+
 
 // Big moon phase component using moon-pattern.png
 function MoonPhaseDisplay({ phase }: { phase: number }) {
@@ -182,21 +184,9 @@ export default function MoonHairDashboard() {
 	const moonPhaseData = getMoonPhaseWithTiming(new Date());
 
 	// Get all moon phases with their recommendations
-	const allPhases = [
-		{ name: "New Moon", emoji: "🌑", phaseValue: 0 },
-		{ name: "Waxing Crescent", emoji: "🌒", phaseValue: 0.125 },
-		{ name: "First Quarter", emoji: "🌓", phaseValue: 0.25 },
-		{ name: "Waxing Gibbous", emoji: "🌔", phaseValue: 0.375 },
-		{ name: "Full Moon", emoji: "🌕", phaseValue: 0.5 },
-		{ name: "Waning Gibbous", emoji: "🌖", phaseValue: 0.625 },
-		{ name: "Last Quarter", emoji: "🌗", phaseValue: 0.75 },
-		{ name: "Waning Crescent", emoji: "🌘", phaseValue: 0.875 },
-	].map((phase) => ({
+	const allPhases = moonPhases.map((phase) => ({
 		...phase,
-		recommendations:
-			MoonPhaseRecommendations[
-				phase.name as keyof typeof MoonPhaseRecommendations
-			],
+		recommendations: phase.description,
 	}));
 
 	return (
@@ -232,10 +222,7 @@ export default function MoonHairDashboard() {
 								<div className="flex flex-col text-sm justify-center gap-2">
 									<p className="italic font-bold max-w-md text-balance">
 										{
-											MoonPhaseRecommendations[
-												moonPhaseData.current
-													.name as keyof typeof MoonPhaseRecommendations
-											]?.description
+											moonPhaseData.current.description
 										}
 									</p>
 									<span>
@@ -271,13 +258,10 @@ export default function MoonHairDashboard() {
 										phase={moonPhaseData.previous.name}
 										phaseValue={moonPhaseData.previous.phaseNumber / 8}
 										emoji={moonPhaseData.previous.emoji}
-										description={moonPhaseData.previous.advice}
+										description={moonPhaseData.previous.description}
 										dateText={`Aug 15`}
 										action={
-											MoonPhaseRecommendations[
-												moonPhaseData.previous
-													.name as keyof typeof MoonPhaseRecommendations
-											]?.action
+											moonPhaseData.previous.action
 										}
 									/>
 								</CarouselItem>
@@ -292,13 +276,10 @@ export default function MoonHairDashboard() {
 											phase={moonPhaseData.current.name}
 											phaseValue={moonPhaseData.current.phaseNumber / 8}
 											emoji={moonPhaseData.current.emoji}
-											description={moonPhaseData.current.advice}
+											description={moonPhaseData.current.description}
 											dateText={`Since: ${formatDateTime(moonPhaseData.current.startDate)}`}
 											action={
-												MoonPhaseRecommendations[
-													moonPhaseData.current
-														.name as keyof typeof MoonPhaseRecommendations
-												]?.action
+												moonPhaseData.current.action
 											}
 										/>
 									</div>
@@ -311,13 +292,10 @@ export default function MoonHairDashboard() {
 										phase={moonPhaseData.next.name}
 										phaseValue={moonPhaseData.next.phaseNumber / 8}
 										emoji={moonPhaseData.next.emoji}
-										description={moonPhaseData.next.advice}
+										description={moonPhaseData.next.description}
 										dateText={`Aug 28 - Aug 30`}
 										action={
-											MoonPhaseRecommendations[
-												moonPhaseData.next
-													.name as keyof typeof MoonPhaseRecommendations
-											]?.action
+											moonPhaseData.next.action
 										}
 									/>
 								</CarouselItem>
@@ -330,7 +308,7 @@ export default function MoonHairDashboard() {
 										phaseValue={0.75}
 										emoji="🌗"
 										description="Focused on volumizing and enhancing shine"
-										action={MoonPhaseRecommendations["Last Quarter"]?.action}
+										action={moonPhases[7].action}
 									/>
 								</CarouselItem>
 
@@ -364,13 +342,10 @@ export default function MoonHairDashboard() {
 							phase={moonPhaseData.previous.name}
 							phaseValue={moonPhaseData.previous.phaseNumber / 8}
 							emoji={moonPhaseData.previous.emoji}
-							description={moonPhaseData.previous.advice}
+							description={moonPhaseData.previous.description}
 							dateText={`Aug 15`}
 							action={
-								MoonPhaseRecommendations[
-									moonPhaseData.previous
-										.name as keyof typeof MoonPhaseRecommendations
-								]?.action
+								moonPhaseData.previous.action
 							}
 						/>
 
@@ -381,13 +356,10 @@ export default function MoonHairDashboard() {
 								phase={moonPhaseData.current.name}
 								phaseValue={moonPhaseData.current.phaseNumber / 8}
 								emoji={moonPhaseData.current.emoji}
-								description={moonPhaseData.current.advice}
+								description={moonPhaseData.current.description}
 								dateText={`Since: ${formatDateTime(moonPhaseData.current.startDate)}`}
 								action={
-									MoonPhaseRecommendations[
-										moonPhaseData.current
-											.name as keyof typeof MoonPhaseRecommendations
-									]?.action
+									moonPhaseData.current.action
 								}
 							/>
 						</div>
@@ -398,13 +370,10 @@ export default function MoonHairDashboard() {
 							phase={moonPhaseData.next.name}
 							phaseValue={moonPhaseData.next.phaseNumber / 8}
 							emoji={moonPhaseData.next.emoji}
-							description={moonPhaseData.next.advice}
+							description={moonPhaseData.next.description}
 							dateText={`Aug 28 - Aug 30`}
 							action={
-								MoonPhaseRecommendations[
-									moonPhaseData.next
-										.name as keyof typeof MoonPhaseRecommendations
-								]?.action
+								moonPhaseData.next.action
 							}
 						/>
 
@@ -415,7 +384,7 @@ export default function MoonHairDashboard() {
 							phaseValue={0.75}
 							emoji="🌗"
 							description="Focused on volumizing and enhancing shine"
-							action={MoonPhaseRecommendations["Last Quarter"]?.action}
+							action={moonPhases[7].action}
 						/>
 					</div>
 				</div>

@@ -7,7 +7,8 @@ import LocationInfo from "./LocationInfo";
 
 export const metadata: Metadata = {
 	title: "Moonphase Hair",
-	description: "How the moon phase affects your hair growth and styling.",
+	description:
+		"How the current moon phase affects your hair growth and styling.",
 };
 
 const spaceGrotesk = Space_Grotesk({
