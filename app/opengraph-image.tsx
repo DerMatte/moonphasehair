@@ -13,6 +13,12 @@ export const contentType = 'image/png'
 export default async function Image() {
   const moonData = getMoonPhaseWithTiming(new Date())
   const currentPhase = moonData.current
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 
   return new ImageResponse(
     (
@@ -24,11 +30,11 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #0f0f23 100%)',
+          background: '#f5f5f5', // neutral-100
           position: 'relative',
         }}
       >
-        {/* Background stars effect */}
+        {/* Subtle background pattern */}
         <div
           style={{
             position: 'absolute',
@@ -36,9 +42,8 @@ export default async function Image() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundImage: 'radial-gradient(2px 2px at 20px 30px, #ffffff, transparent), radial-gradient(2px 2px at 40px 70px, #ffffff, transparent), radial-gradient(1px 1px at 90px 40px, #ffffff, transparent), radial-gradient(1px 1px at 130px 80px, #ffffff, transparent), radial-gradient(2px 2px at 160px 30px, #ffffff, transparent)',
-            backgroundRepeat: 'repeat',
-            backgroundSize: '200px 100px',
+            backgroundImage: 'radial-gradient(circle at 25px 25px, #e5e5e5 2px, transparent 2px)',
+            backgroundSize: '50px 50px',
             opacity: 0.3,
           }}
         />
@@ -50,35 +55,49 @@ export default async function Image() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '24px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '60px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            background: '#ffffff', // white
+            border: '2px solid #e5e5e5', // neutral-200
+            borderRadius: '32px',
+            padding: '80px 60px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+            maxWidth: '900px',
           }}
         >
+          {/* Date */}
+          <div
+            style={{
+              fontSize: '24px',
+              fontWeight: '500',
+              color: '#737373', // neutral-500
+              marginBottom: '16px',
+              textAlign: 'center',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            {currentDate}
+          </div>
+          
           {/* Moon emoji */}
           <div
             style={{
-              fontSize: '120px',
-              marginBottom: '20px',
-              filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+              fontSize: '140px',
+              marginBottom: '24px',
+              filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))',
             }}
           >
             {currentPhase.emoji}
           </div>
           
-          {/* Moon phase name */}
+          {/* Moon phase name - bigger heading */}
           <div
             style={{
-              fontSize: '48px',
-              fontWeight: '700',
-              color: '#ffffff',
-              marginBottom: '16px',
+              fontSize: '64px',
+              fontWeight: '800',
+              color: '#171717', // neutral-900
+              marginBottom: '20px',
               textAlign: 'center',
-              letterSpacing: '-0.02em',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+              letterSpacing: '-0.025em',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
             }}
           >
             {currentPhase.name}
@@ -87,13 +106,14 @@ export default async function Image() {
           {/* Action/description */}
           <div
             style={{
-              fontSize: '28px',
-              fontWeight: '500',
-              color: '#e0e7ff',
+              fontSize: '32px',
+              fontWeight: '600',
+              color: '#404040', // neutral-700
               textAlign: 'center',
-              maxWidth: '800px',
-              lineHeight: 1.4,
-              marginBottom: '12px',
+              maxWidth: '700px',
+              lineHeight: 1.3,
+              marginBottom: '16px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
             }}
           >
             {currentPhase.action}
@@ -102,12 +122,13 @@ export default async function Image() {
           {/* Secondary description */}
           <div
             style={{
-              fontSize: '22px',
+              fontSize: '24px',
               fontWeight: '400',
-              color: '#cbd5e1',
+              color: '#525252', // neutral-600
               textAlign: 'center',
-              maxWidth: '700px',
-              lineHeight: 1.3,
+              maxWidth: '650px',
+              lineHeight: 1.4,
+              fontFamily: 'system-ui, -apple-system, sans-serif',
             }}
           >
             {currentPhase.description}
@@ -118,13 +139,14 @@ export default async function Image() {
         <div
           style={{
             position: 'absolute',
-            bottom: '40px',
-            fontSize: '18px',
-            color: '#94a3b8',
-            fontWeight: '400',
+            bottom: '32px',
+            fontSize: '20px',
+            color: '#737373', // neutral-500
+            fontWeight: '500',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
-          Moon Phase Hair Care • Current Phase
+          Moon Phase Hair Care
         </div>
       </div>
     ),
