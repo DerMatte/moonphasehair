@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { InfoButton } from "./InfoButton";
 import LocationInfo from "./LocationInfo";
+import ServiceWorker from "./ServiceWorker";
 
 export const metadata: Metadata = {
 	title: "Moonphase Hair",
@@ -35,6 +36,8 @@ export default function RootLayout({
 			<body
 				className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased text-black bg-neutral-100 font-mono`}
 			>
+				<ServiceWorker />
+				<script src="/sw.js"></script>
 				{/* Border Container */}
 				<div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-16">
 					<div className="relative w-full h-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-8rem)]">

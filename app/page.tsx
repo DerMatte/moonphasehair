@@ -10,7 +10,7 @@ import BigMoon from "@/components/BigMoon";
 import MoonIcon from "@/components/MoonIcon";
 import { Suspense } from "react";
 
-export const revalidate = 60;
+export const revalidate = 60 * 60; // 1 hour
 
 
 export default function MoonHairDashboard() {

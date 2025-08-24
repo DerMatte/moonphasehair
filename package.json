@@ -6,7 +6,8 @@
     "dev": "NODE_OPTIONS='--inspect' next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -39,6 +40,7 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@vercel/functions": "^2.2.12",
+    "@vercel/kv": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
@@ -48,7 +50,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.540.0",
     "lunarphase-js": "^2.0.3",
-    "next": "15.4.2-canary.56",
+    "next": "15.5.1-canary.6",
     "next-themes": "^0.4.6",
     "react": "^19.1.1",
     "react-day-picker": "9.9.0",
@@ -61,6 +63,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
+    "web-push": "^3.6.7",
     "zod": "^4.0.17"
   },
   "devDependencies": {
@@ -71,6 +74,7 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/suncalc": "^1.9.2",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9.33.0",
     "eslint-config-next": "15.4.6",
     "postcss": "^8.5.6",
