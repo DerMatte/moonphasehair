@@ -1,7 +1,13 @@
+import { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Yue from '@/public/yue.png'
+
+export const metadata: Metadata = {
+	title: "404: Not Found",
+	description: "The spirits have hidden this page from you...",
+}
 
 export default function NotFound() {
   return (
