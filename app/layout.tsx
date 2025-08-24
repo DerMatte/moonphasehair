@@ -9,6 +9,32 @@ export const metadata: Metadata = {
 	title: "Moonphase Hair",
 	description:
 		"How the current moon phase affects your hair growth and styling.",
+	metadataBase: new URL("https://moonphasehair.com"),
+	robots: {
+		index: true,
+		follow: true,
+	},
+	openGraph: {
+		images: [
+			{
+				url: "https://moonphasehair.com/opengraph-image.png",
+			},
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "Moonphase Hair",
+		description:
+			"Learn ow the current moon phase affects your hair growth and styling.",
+		images: ["https://moonphasehair.com/opengraph-image.png"],
+	},
+	// TODO: Add favicon
+	icons: {
+		icon: "/favicon.ico",
+	},
+	// verification: {
+	// 	google: "google-site-verification=1234567890",
+	// },
 };
 
 const spaceGrotesk = Space_Grotesk({
