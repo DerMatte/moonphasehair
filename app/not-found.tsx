@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import Yue from '@/public/yue.png'
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default function NotFound() {
       </div>
       <Link 
         href="/" 
-        className="inline-flex items-center gap-2 bg-sky-800 text-neutral-100 px-6 py-3 rounded-lg hover:bg-sky-700 transition-all duration-200 hover:scale-105 group border border-sky-600"
+        className={buttonVariants({ variant: "default", className: "items-center gap-2 bg-sky-800 text-neutral-100 px-6 py-3 rounded-lg hover:bg-sky-700 transition-all duration-200 hover:scale-105 group border border-sky-600" })}
       >
         Return to the Physical World
         <span className="group-hover:animate-pulse">🌙</span>
