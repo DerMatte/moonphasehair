@@ -5,6 +5,8 @@ import "./globals.css";
 import { InfoButton } from "./InfoButton";
 import LocationInfo from "./LocationInfo";
 import ServiceWorker from "./ServiceWorker";
+import PushNotificationManager from "@/components/PushNotificationManager";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
 	title: "Moonphase Hair",
@@ -31,13 +33,19 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>
+				<link rel="manifest" href="/manifest.json" />
 				<link rel="preload" href="/moon-pattern.png" as="image" />
 			</head>
 			<body
 				className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased text-black bg-neutral-100 font-mono`}
 			>
 				<ServiceWorker />
-				<script src="/sw.js"></script>
+				<div className="fixed top-4 right-4 z-50 max-w-sm">
+					<InstallPrompt />
+				</div>
+				<div className="fixed bottom-4 right-4 z-50 max-w-sm">
+					<PushNotificationManager />
+				</div>
 				{/* Border Container */}
 				<div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-16">
 					<div className="relative w-full h-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-8rem)]">
