@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -9,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { track } from '@vercel/analytics';
 
 
 import InfoPicture from '@/public/Moon-Hair.png';
@@ -19,7 +22,7 @@ export function InfoButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-      <Button variant="ghost" className="p-0 m-0 flex-none gap-0">
+      <Button variant="ghost" className="p-0 m-0 flex-none gap-0" onClick={() => track('info_button_clicked')}>
           <InfoBox size={32} />
         </Button>
       </DialogTrigger>
