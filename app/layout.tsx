@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -10,31 +10,45 @@ export const metadata: Metadata = {
 	description:
 		"How the current moon phase affects your hair growth and styling.",
 	metadataBase: new URL("https://moonphasehair.com"),
+	manifest: "/site.webmanifest",
 	robots: {
 		index: true,
 		follow: true,
 	},
 	openGraph: {
+		title: "Moonphase Hair",
+		description:
+			"Learn how the current moon phase affects your hair growth and styling.",
+		siteName: "Moonphase Hair",
+		url: "https://moonphasehair.com",
 		images: [
 			{
 				url: "https://moonphasehair.com/opengraph-image.png",
 			},
 		],
+		locale: "en_US",
+		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Moonphase Hair",
 		description:
-			"Learn ow the current moon phase affects your hair growth and styling.",
-		images: ["https://moonphasehair.com/opengraph-image.png"],
+			"Learn how the current moon phase affects your hair growth and styling.",
+		images: ["https://moonphasehair.com/twitter-image.png"],
+		// creator: "@moonphasehair",
 	},
-	// TODO: Add favicon
 	icons: {
 		icon: "/favicon.ico",
+		apple: "/apple-touch-icon.png",
+		shortcut: "/favicon.ico",
 	},
-	// verification: {
-	// 	google: "google-site-verification=1234567890",
-	// },
+	verification: {
+		google: "HwK0IRE_90VIWUje97OnzWlfJ0M3tGOh12GubiakUJg",
+	},
+};
+
+export const viewport: Viewport = {
+	themeColor: "#F5F5F5",
 };
 
 const spaceGrotesk = Space_Grotesk({
