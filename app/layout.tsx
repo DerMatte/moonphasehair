@@ -7,10 +7,10 @@ import { InfoButton } from "./InfoButton";
 import LocationInfo from "./LocationInfo";
 
 export const metadata: Metadata = {
+	metadataBase: new URL("https://moonphasehair.com"),
 	title: "Moonphase Hair",
 	description:
 		"How the current moon phase affects your hair growth and styling.",
-	metadataBase: new URL("https://moonphasehair.com"),
 	manifest: "/site.webmanifest",
 	robots: {
 		index: true,
