@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 import { InfoButton } from "./InfoButton";
 import LocationInfo from "./LocationInfo";
@@ -125,6 +126,7 @@ export default function RootLayout({
 						</div>
 					</div>
 				</div>
+				<Analytics />
 			</body>
 		</html>
 	);
