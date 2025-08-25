@@ -93,3 +93,55 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
     upcoming: upcoming
   };
 }
+
+// Function to find the next occurrence of a specific moon phase
+export function getNextMoonPhaseOccurrence(targetPhaseName: string, fromDate: Date = new Date()): Date | null {
+  // Find the target phase number
+  const targetPhaseIndex = moonPhases.findIndex(phase => phase.name === targetPhaseName);
+  if (targetPhaseIndex === -1) return null;
+  
+  // Check phases for the next ~2 months (2 lunar cycles)
+  for (let daysAhead = 0; daysAhead < 60; daysAhead++) {
+    const checkDate = new Date(fromDate);
+    checkDate.setDate(fromDate.getDate() + daysAhead);
+    
+    const phaseNumber = getMoonPhase(checkDate);
+    
+    if (phaseNumber === targetPhaseIndex) {
+      // Found the phase, calculate the start of this phase period
+      const phaseStart = new Date(checkDate);
+      phaseStart.setHours(12, 0, 0, 0); // Set to noon for consistency
+      return phaseStart;
+    }
+  }
+  
+  return null;
+}
+
+// Function to calculate time until a specific date
+export function getTimeUntilDate(targetDate: Date, fromDate: Date = new Date()): string {
+  const diffMs = targetDate.getTime() - fromDate.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  
+  if (diffDays === 0) {
+    if (diffHours === 0) {
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      return `in ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`;
+    }
+    return `in ${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+  } else if (diffDays === 1) {
+    return "tomorrow";
+  } else if (diffDays < 7) {
+    return `in ${diffDays} days`;
+  } else if (diffDays < 14) {
+    return "in about a week";
+  } else if (diffDays < 21) {
+    return "in about 2 weeks";
+  } else if (diffDays < 28) {
+    return "in about 3 weeks";
+  } else {
+    const weeks = Math.round(diffDays / 7);
+    return `in about ${weeks} weeks`;
+  }
+}

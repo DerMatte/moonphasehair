@@ -1,8 +1,8 @@
 "use client";
 
 import MoonIcon from "@/components/MoonIcon";
-import { useState } from 'react';
-import { getMoonPhaseWithTiming } from '@/lib/MoonPhaseCalculator';
+import { useState, useMemo } from 'react';
+import { getNextMoonPhaseOccurrence, getTimeUntilDate } from '@/lib/MoonPhaseCalculator';
 
 // Moon phase card component
 export default function MoonPhaseCard({
@@ -24,6 +24,16 @@ export default function MoonPhaseCard({
 }) {
 	const [subscribed, setSubscribed] = useState(false);
 
+	// Calculate the next occurrence of this phase and time until it
+	const { nextOccurrenceDate, timeUntilPhase } = useMemo(() => {
+		const nextDate = getNextMoonPhaseOccurrence(phase);
+		const timeUntil = nextDate ? getTimeUntilDate(nextDate) : null;
+		return {
+			nextOccurrenceDate: nextDate,
+			timeUntilPhase: timeUntil
+		};
+	}, [phase]);
+
 	const handleSubscribe = async (targetPhase: string) => {
 		if (!('PushManager' in window)) return alert('Push notifications not supported');
 
@@ -36,10 +46,8 @@ export default function MoonPhaseCard({
 			applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
 		});
 
-		// Calculate next date for this phase (find next occurrence, e.g., ~2 weeks out)
-		const { upcoming } = getMoonPhaseWithTiming(new Date());
-		const nextOccurrence = upcoming.find((p) => p.name === targetPhase);
-		const nextDate = nextOccurrence?.date?.toISOString() || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(); // Fallback: 2 weeks
+		// Use the calculated next occurrence date
+		const nextDate = nextOccurrenceDate?.toISOString() || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
 		// Send to API
 		await fetch('/api/subscribe', {
@@ -65,14 +73,16 @@ export default function MoonPhaseCard({
 					<p className="text-sm text-gray-600 italic">{description}</p>
 					{dateText && <p className="text-xs text-gray-500 mt-2">{dateText}</p>}
 				</div>
-				<button
-					onClick={() => handleSubscribe(phase)}
-					disabled={subscribed}
-					className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-					type="button"
-				>
-					{subscribed ? 'Subscribed!' : 'Remind me for this phase (in ~2 weeks)'}
-				</button>
+				{timeUntilPhase && (
+					<button
+						onClick={() => handleSubscribe(phase)}
+						disabled={subscribed}
+						className="mt-4 px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 transition-colors"
+						type="button"
+					>
+						{subscribed ? 'Subscribed!' : `Remind me (${timeUntilPhase})`}
+					</button>
+				)}
 			</div>
 		</div>
 	);

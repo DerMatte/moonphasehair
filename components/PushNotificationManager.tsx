@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { subscribeUser, unsubscribeUser, sendNotification } from '@/app/actions'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@radix-ui/react-accordion'
+import { ChevronDown } from 'lucide-react'
 
 export default function PushNotificationManager() {
   const [isSupported, setIsSupported] = useState(false)
@@ -55,39 +58,53 @@ export default function PushNotificationManager() {
   if (!isSupported) {
     return <p>Push notifications are not supported in this browser.</p>
   }
-
   return (
-    <div className="space-y-4 p-4 border rounded">
-      <h3 className="text-lg font-semibold">Push Notifications</h3>
-      
-      {subscription ? (
-        <>
-          <p className="text-sm text-green-600">✓ You are subscribed to push notifications</p>
-          <Button onClick={unsubscribeFromPush} variant="outline">
-            Unsubscribe
-          </Button>
-          
-          <div className="space-y-2">
-            <input
-              type="text"
-              placeholder="Test message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-            <Button onClick={sendTestNotification}>
-              Send Test Notification
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-gray-600">Enable push notifications to get moon phase reminders</p>
-          <Button onClick={subscribeToPush}>
-            Enable Notifications
-          </Button>
-        </>
-      )}
-    </div>
+    <Card className="space-y-4 p-4">
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="push-notifications">
+          <AccordionTrigger className="text-left">
+            <div className="flex items-center justify-between  gap-4 w-full">
+              <div className="font-semibold">Push Notifications</div>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="mb-4">
+              <div className="text-sm text-muted-foreground">Enable push notifications to get moon phase reminders</div>
+            </div>
+            <CardContent>
+            {subscription ? (
+              <>
+                <p className="text-sm text-green-600">✓ You are subscribed to push notifications</p>
+                <Button onClick={unsubscribeFromPush} variant="outline">
+                  Unsubscribe
+                </Button>
+                
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Test message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full p-2 border rounded"
+                  />
+                  <Button onClick={sendTestNotification}>
+                    Send Test Notification
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-neutral-600">Enable push notifications to get moon phase reminders</p>
+                <Button onClick={subscribeToPush}>
+                  Enable Notifications
+                </Button>
+              </>
+            )}
+            </CardContent>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
   )
 }
