@@ -5,15 +5,19 @@ export default function MoonIcon({ phase }: { phase: number }) {
 
 	const calculatePath = (phase: number) => {
 		if (phase === 0 || phase === 1) {
+			// New moon - keep unchanged (full shadow)
 			return `M ${radius} 0 A ${radius} ${radius} 0 1 1 ${radius} ${size} A ${radius} ${radius} 0 1 1 ${radius} 0`;
 		} else if (phase === 0.5) {
+			// Full moon - keep unchanged (no shadow)
 			return "";
 		} else if (phase < 0.5) {
-			const offset = Math.cos(phase * 2 * Math.PI) * radius;
-			return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${size} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
-		} else {
+			// Waxing phases - now use waning logic (inverted)
 			const offset = Math.cos(phase * 2 * Math.PI) * radius;
 			return `M ${radius} 0 A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 0 : 1} ${radius} ${size} A ${radius} ${radius} 0 1 0 ${radius} 0`;
+		} else {
+			// Waning phases - now use waxing logic (inverted)
+			const offset = Math.cos(phase * 2 * Math.PI) * radius;
+			return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${size} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
 		}
 	};
 

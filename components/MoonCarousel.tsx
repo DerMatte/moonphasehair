@@ -11,8 +11,11 @@ import { getNextMoonPhaseOccurrence } from "@/lib/MoonPhaseCalculator";
 import { formatDateWithTimezone } from "@/lib/utils";
 import { moonPhases } from "@/lib/consts";
 
-export default function MoonCarousel({moonPhaseData}: {moonPhaseData: MoonPhaseData}) {
-
+export default function MoonCarousel({
+	moonPhaseData,
+}: {
+	moonPhaseData: MoonPhaseData;
+}) {
 	return (
 		<div className="mt-12 mb-8">
 			<h3 className="text-2xl font-bold font-sans mb-6">Moon Phases</h3>
@@ -95,8 +98,10 @@ export default function MoonCarousel({moonPhaseData}: {moonPhaseData: MoonPhaseD
 						{/* Additional moon phases */}
 						{moonPhases.map((phase) => {
 							const nextOccurrence = getNextMoonPhaseOccurrence(phase.name);
-							const dateText = nextOccurrence ? `${formatDateWithTimezone(nextOccurrence)}` : undefined;
-							
+							const dateText = nextOccurrence
+								? `${formatDateWithTimezone(nextOccurrence)}`
+								: undefined;
+
 							return (
 								<CarouselItem
 									key={phase.name}
@@ -175,11 +180,32 @@ export default function MoonCarousel({moonPhaseData}: {moonPhaseData: MoonPhaseD
 						action={upcoming.action}
 					/>
 				))}
+				{/* Additional moon phases */}
+				{moonPhases.map((phase) => {
+					const nextOccurrence = getNextMoonPhaseOccurrence(phase.name);
+					const dateText = nextOccurrence
+						? `${formatDateWithTimezone(nextOccurrence)}`
+						: undefined;
+
+					return (
+						<div key={phase.name} className="space-y-4">
+							<MoonPhaseCard
+								title="Phase"
+								phase={phase.name}
+								phaseValue={phase.phaseValue}
+								icon={phase.icon}
+								emoji={phase.emoji}
+								description={phase.description || ""}
+								dateText={dateText}
+								action={phase.action}
+							/>
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);
 }
-
 
 export function MoonCarouselSkeleton() {
 	return (

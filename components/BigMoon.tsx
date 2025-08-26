@@ -4,25 +4,25 @@ export default function BigMoon({ phase }: { phase: number }) {
 	const viewBoxSize = 100;
 	const radius = viewBoxSize / 2;
 
-	// Improved calculatePath function based on MoonIcon.tsx logic
+	// Inverted calculatePath function - shadows and illumination are flipped
 	const calculatePath = (phase: number) => {
 		// Normalize phase to 0-1 range
 		const normalizedPhase = phase % 1;
 		
 		if (normalizedPhase === 0 || normalizedPhase >= 0.99) {
-			// New moon - full dark overlay
-			return `M ${radius} 0 A ${radius} ${radius} 0 1 1 ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 1 ${radius} 0`;
-		} else if (normalizedPhase === 0.5) {
-			// Full moon - no dark overlay
+			// New moon - no dark overlay (now fully illuminated)
 			return "";
+		} else if (normalizedPhase === 0.5) {
+			// Full moon - full dark overlay (now fully shadowed)
+			return `M ${radius} 0 A ${radius} ${radius} 0 1 1 ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 1 ${radius} 0`;
 		} else if (normalizedPhase < 0.5) {
-			// Waxing phases - shadow recedes from right to left
-			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
-			return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${viewBoxSize} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
-		} else {
-			// Waning phases - shadow advances from left to right  
+			// Waxing phases - shadow advances from left to right (inverted)
 			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
 			return `M ${radius} 0 A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 0 : 1} ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 0 ${radius} 0`;
+		} else {
+			// Waning phases - shadow recedes from right to left (inverted)
+			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
+			return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${viewBoxSize} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
 		}
 	};
 
