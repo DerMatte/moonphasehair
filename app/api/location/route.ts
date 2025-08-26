@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
       country: country || 'Unknown', 
       region: region || '',
       timezone,
+      latitude: latitude ? parseFloat(latitude) : null,
+      longitude: longitude ? parseFloat(longitude) : null,
       source: 'vercel'
     });
   } catch (error) {
@@ -35,6 +37,8 @@ export async function GET(request: NextRequest) {
       country: 'Unknown', 
       region: '',
       timezone: 'UTC',
+      latitude: null,
+      longitude: null,
       source: 'error'
     }, { status: 500 });
   }

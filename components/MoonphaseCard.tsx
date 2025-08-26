@@ -4,6 +4,7 @@ import MoonIcon from "@/components/MoonIcon";
 import { useState, useMemo } from 'react';
 import { getNextMoonPhaseOccurrence, getTimeUntilDate, getMoonPhaseWithTiming } from '@/lib/MoonPhaseCalculator';
 import { toast } from 'sonner';
+import { useHemisphere } from '@/contexts/LocationContext';
 
 // Moon phase card component
 export default function MoonPhaseCard({
@@ -26,11 +27,12 @@ export default function MoonPhaseCard({
 	action?: string;
 }) {
 	const [subscribed, setSubscribed] = useState(false);
+	const hemisphere = useHemisphere();
 
 	// Calculate the next occurrence of this phase and time until it
 	const { nextOccurrenceDate, timeUntilPhase, isCurrentPhase } = useMemo(() => {
 		// Check if this is the current phase
-		const currentPhaseData = getMoonPhaseWithTiming(new Date());
+		const currentPhaseData = getMoonPhaseWithTiming(new Date(), hemisphere);
 		const isCurrent = currentPhaseData.current.name === phase;
 		
 		// For current phase, show time until it ends
@@ -44,14 +46,14 @@ export default function MoonPhaseCard({
 		}
 		
 		// For other phases, show when they will occur next
-		const nextDate = getNextMoonPhaseOccurrence(phase);
+		const nextDate = getNextMoonPhaseOccurrence(phase, new Date(), hemisphere);
 		const timeUntil = nextDate ? getTimeUntilDate(nextDate) : null;
 		return {
 			nextOccurrenceDate: nextDate,
 			timeUntilPhase: timeUntil,
 			isCurrentPhase: false
 		};
-	}, [phase]);
+	}, [phase, hemisphere]);
 
 	const handleSubscribe = async (targetPhase: string) => {
 		try {

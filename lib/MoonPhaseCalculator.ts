@@ -1,5 +1,6 @@
 import { moonPhases } from "@/lib/consts";
-import { Moon, LunarPhase } from "lunarphase-js";
+import { Moon, LunarPhase, Hemisphere as LunarHemisphere } from "lunarphase-js";
+import { Hemisphere, adjustPhaseForHemisphere, getMoonEmojiForHemisphere } from "@/lib/hemisphere";
 
 export type MoonPhaseData = ReturnType<typeof getMoonPhaseWithTiming>;
 
@@ -24,9 +25,10 @@ const PHASE_AGES = {
     SYNODIC_MONTH: 29.53058770576
 };
 
-export function getMoonPhase(date: Date): number {
+export function getMoonPhase(date: Date, hemisphere: Hemisphere = Hemisphere.NORTHERN): number {
     const phaseName = Moon.lunarPhase(date);
-    return phaseNameToIndex[phaseName] || 0;
+    const phaseIndex = phaseNameToIndex[phaseName] || 0;
+    return adjustPhaseForHemisphere(phaseIndex, hemisphere);
 }
 
 // Get accurate lunar age percentage (0-1 through the cycle)
@@ -64,8 +66,8 @@ function getPhaseBoundaries(lunarAge: number): { start: number, end: number } {
 }
 
 // New function to get phase with timing information
-export function getMoonPhaseWithTiming(date: Date = new Date()) {
-  const phaseNumber = getMoonPhase(date);
+export function getMoonPhaseWithTiming(date: Date = new Date(), hemisphere: Hemisphere = Hemisphere.NORTHERN) {
+  const phaseNumber = getMoonPhase(date, hemisphere);
   const lunarAge = Moon.lunarAge(date); // Days since new moon
   const lunarAgePercent = Moon.lunarAgePercent(date); // 0-1 through cycle
   
@@ -95,7 +97,7 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
   
   // For next phase, find its actual occurrence
   const nextPhaseData = moonPhases[nextPhaseNumber];
-  const nextPhaseDate = getNextMoonPhaseOccurrence(nextPhaseData.name, date);
+  const nextPhaseDate = getNextMoonPhaseOccurrence(nextPhaseData.name, date, hemisphere);
   
   // Calculate upcoming phases accurately
   const upcoming = [];
@@ -104,7 +106,7 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
   for (let i = 2; i <= 5; i++) {
     const upcomingPhaseNumber = (phaseNumber + i) % 8;
     const upcomingPhaseData = moonPhases[upcomingPhaseNumber];
-    const upcomingDate = getNextMoonPhaseOccurrence(upcomingPhaseData.name, searchDate);
+    const upcomingDate = getNextMoonPhaseOccurrence(upcomingPhaseData.name, searchDate, hemisphere);
     
     if (upcomingDate) {
       upcoming.push({
@@ -127,21 +129,31 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
       lunarAge,
       lunarAgePercent,
       startDate: currentPhaseStart,
-      endDate: currentPhaseEnd
+      endDate: currentPhaseEnd,
+      emoji: getMoonEmojiForHemisphere(phaseNumber, hemisphere),
+      hemisphere
     },
     next: {
       ...moonPhases[nextPhaseNumber],
       phaseNumber: nextPhaseNumber,
       startDate: currentPhaseEnd,
-      endDate: nextPhaseDate || currentPhaseEnd
+      endDate: nextPhaseDate || currentPhaseEnd,
+      emoji: getMoonEmojiForHemisphere(nextPhaseNumber, hemisphere)
     },
     previous: {
       ...moonPhases[previousPhaseNumber],
       phaseNumber: previousPhaseNumber,
       startDate: new Date(currentPhaseStart.getTime() - 24 * 60 * 60 * 1000), // Approximate
-      endDate: currentPhaseStart
+      endDate: currentPhaseStart,
+      emoji: getMoonEmojiForHemisphere(previousPhaseNumber, hemisphere)
     },
-    upcoming: upcoming
+    upcoming: upcoming.map(phase => ({
+      ...phase,
+      emoji: getMoonEmojiForHemisphere(
+        moonPhases.findIndex(p => p.name === phase.name),
+        hemisphere
+      )
+    }))
   };
 }
 
@@ -184,7 +196,7 @@ export function getNextMajorPhase(fromDate: Date = new Date()): { phase: string,
 }
 
 // Function to find the next occurrence of a specific moon phase
-export function getNextMoonPhaseOccurrence(targetPhaseName: string, fromDate: Date = new Date()): Date | null {
+export function getNextMoonPhaseOccurrence(targetPhaseName: string, fromDate: Date = new Date(), hemisphere: Hemisphere = Hemisphere.NORTHERN): Date | null {
   // For major phases, use precise calculation
   const majorPhases = ["New Moon", "First Quarter", "Full Moon", "Last Quarter"];
   if (majorPhases.includes(targetPhaseName)) {
@@ -226,7 +238,7 @@ export function getNextMoonPhaseOccurrence(targetPhaseName: string, fromDate: Da
     // Search for the phase
     for (let days = 1; days <= 30; days++) {
       const searchDate = new Date(fromDate.getTime() + days * 24 * 60 * 60 * 1000);
-      if (getMoonPhase(searchDate) === targetPhaseIndex) {
+      if (getMoonPhase(searchDate, hemisphere) === targetPhaseIndex) {
         return new Date(searchDate);
       }
     }

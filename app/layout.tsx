@@ -9,6 +9,7 @@ import ServiceWorker from "./ServiceWorker";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner"
+import LocationDataProvider from "./LocationDataProvider"
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://moonphasehair.com"),
@@ -81,15 +82,16 @@ export default function RootLayout({
 			<body
 				className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased text-black bg-neutral-100 font-mono`}
 			>
-				<ServiceWorker />
-				<div className="fixed top-4 right-4 z-50 max-w-sm">
-					<InstallPrompt />
-				</div>
-				<div className="fixed bottom-4 right-4 z-50 max-w-sm">
-					<PushNotificationManager />
-				</div>
-				{/* Border Container */}
-				<div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-16">
+				<LocationDataProvider>
+					<ServiceWorker />
+					<div className="fixed top-4 right-4 z-50 max-w-sm">
+						<InstallPrompt />
+					</div>
+					<div className="fixed bottom-4 right-4 z-50 max-w-sm">
+						<PushNotificationManager />
+					</div>
+					{/* Border Container */}
+					<div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-16">
 					<div className="relative w-full h-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-8rem)]">
 						{/* SVG Border Overlay */}
 						<div
@@ -141,6 +143,7 @@ export default function RootLayout({
 
 				<Toaster />
 				<Analytics />
+				</LocationDataProvider>
 			</body>
 		</html>
 	);
