@@ -3,17 +3,27 @@
 import webpush from 'web-push'
 import { kv } from '@vercel/kv'
 
-if (!process.env.VAPID_EMAIL || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-  throw new Error('Missing VAPID environment variables');
+function initializeWebPush() {
+  const vapidEmail = process.env.VAPID_EMAIL;
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (vapidEmail && vapidPublicKey && vapidPrivateKey) {
+    webpush.setVapidDetails(
+      `mailto:${vapidEmail}`,
+      vapidPublicKey,
+      vapidPrivateKey
+    );
+    return true;
+  }
+  return false;
 }
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL}`,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-)
-
 export async function subscribeUser(subscriptionData: any, targetPhase: string, nextDate: string) {
+  if (!initializeWebPush()) {
+    throw new Error('Push notifications not configured');
+  }
+  
   try {
     // Store in KV (use endpoint as key for uniqueness)
     await kv.set(subscriptionData.endpoint, JSON.stringify({ 
@@ -41,6 +51,10 @@ export async function unsubscribeUser(endpoint: string) {
 }
 
 export async function sendNotification(subscriptionData: any, title: string, body: string, url?: string) {
+  if (!initializeWebPush()) {
+    throw new Error('Push notifications not configured');
+  }
+  
   try {
     await webpush.sendNotification(
       subscriptionData,

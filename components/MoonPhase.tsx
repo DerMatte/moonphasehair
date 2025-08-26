@@ -1,20 +1,20 @@
+'use client';
+
 import { getMoonPhase } from "../lib/MoonPhaseCalculator";
+import { useHemisphere } from '@/contexts/LocationContext';
+import { getMoonEmojiForHemisphere } from '@/lib/hemisphere';
 
-// enum Hemisphere {
-//   NORTHERN = "Northern",
-//   SOUTHERN = "Southern",
-// }
-
-export default async function MoonPhase() {
+export default function MoonPhase() {
+  const hemisphere = useHemisphere();
   const today = new Date();
-  const currentPhase = getMoonPhase(today);
+  const currentPhase = getMoonPhase(today, hemisphere);
 
   // Calculate next phase
   const nextPhaseDate = new Date(today);
   let nextPhase;
   do {
     nextPhaseDate.setDate(nextPhaseDate.getDate() + 1);
-    nextPhase = getMoonPhase(nextPhaseDate);
+    nextPhase = getMoonPhase(nextPhaseDate, hemisphere);
   } while (nextPhase === currentPhase);
 
   let previousPhase = currentPhase - 1;
@@ -25,6 +25,56 @@ export default async function MoonPhase() {
   //   if (hemisphere === Hemisphere.SOUTHERN) {
   //     previousPhase = (previousPhase + 4) % 8;
   //   }
+
+  function interpretMoonPhase(phase: number): {
+    phase: string;
+    icon: string;
+    effect: string;
+  } {
+    const phases = [
+      {
+        phase: "New Moon",
+        icon: getMoonEmojiForHemisphere(0, hemisphere),
+        effect: "Fresh start / Transformative change",
+      },
+      {
+        phase: "Waxing Crescent",
+        icon: getMoonEmojiForHemisphere(1, hemisphere),
+        effect: "Hair grows back faster / Strengthen",
+      },
+      {
+        phase: "First Quarter",
+        icon: getMoonEmojiForHemisphere(2, hemisphere),
+        effect: "New hairstyle / Change colour",
+      },
+      {
+        phase: "Waxing Gibbous",
+        icon: getMoonEmojiForHemisphere(3, hemisphere),
+        effect: "Get rid of split ends / Hair care",
+      },
+      {
+        phase: "Full Moon",
+        icon: getMoonEmojiForHemisphere(4, hemisphere),
+        effect: "Hair grows back faster / Nourish",
+      },
+      {
+        phase: "Waning Gibbous",
+        icon: getMoonEmojiForHemisphere(5, hemisphere),
+        effect: "Detox / Release stored emotional energy",
+      },
+      {
+        phase: "Last Quarter",
+        icon: getMoonEmojiForHemisphere(6, hemisphere),
+        effect: "Slows hair growth"
+      },
+      {
+        phase: "Waning Crescent",
+        icon: getMoonEmojiForHemisphere(7, hemisphere),
+        effect: "Leave alone, allow recovery to take place",
+      },
+    ];
+    return phases[phase];
+  }
 
   return (
     <>
@@ -110,50 +160,4 @@ export default async function MoonPhase() {
       </div>
     </>
   );
-}
-
-function interpretMoonPhase(phase: number): {
-  phase: string;
-  icon: string;
-  effect: string;
-} {
-  const phases = [
-    {
-      phase: "New Moon",
-      icon: "🌑",
-      effect: "Fresh start / Transformative change",
-    },
-    {
-      phase: "Waxing Crescent",
-      icon: "🌒",
-      effect: "Hair grows back faster / Strengthen",
-    },
-    {
-      phase: "First Quarter",
-      icon: "🌓",
-      effect: "New hairstyle / Change colour",
-    },
-    {
-      phase: "Waxing Gibbous",
-      icon: "🌔",
-      effect: "Get rid of split ends / Hair care",
-    },
-    {
-      phase: "Full Moon",
-      icon: "🌕",
-      effect: "Hair grows back faster / Nourish",
-    },
-    {
-      phase: "Waning Gibbous",
-      icon: "🌖",
-      effect: "Detox / Release stored emotional energy",
-    },
-    { phase: "Last Quarter", icon: "🌗", effect: "Slows hair growth" },
-    {
-      phase: "Waning Crescent",
-      icon: "🌘",
-      effect: "Leave alone, allow recovery to take place",
-    },
-  ];
-  return phases[phase];
 }
