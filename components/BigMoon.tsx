@@ -58,7 +58,7 @@ export default function BigMoon({ phase }: { phase: number }) {
 						preserveAspectRatio="xMidYMid meet"
 						className="absolute inset-0"
 					>
-						<title>Moon phase visualization - Phase: {(phase * 100).toFixed(1)}%</title>
+						<title>{`Moon phase visualization - Phase: ${(phase * 100).toFixed(1)}%`}</title>
 						<defs>
 							{/* Improved gradient for more realistic shadow */}
 							<radialGradient id={`moonShadowGradient-${phase}`} cx="50%" cy="50%" r="50%">

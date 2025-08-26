@@ -1,7 +1,5 @@
 import { getMoonPhase } from "../lib/MoonPhaseCalculator";
 
-export const revalidate = 60;
-
 // enum Hemisphere {
 //   NORTHERN = "Northern",
 //   SOUTHERN = "Southern",

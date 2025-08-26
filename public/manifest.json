@@ -1,0 +1,16 @@
+{
+  "name": "Moonphase Hair",
+  "short_name": "MoonHair",
+  "description": "How the current moon phase affects your hair growth and styling",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
