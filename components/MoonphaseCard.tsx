@@ -84,25 +84,27 @@ export default function MoonPhaseCard({
 			<MoonIcon phase={phaseValue} />
 		{/* Phase Info */}
 		<div className="flex flex-col gap-1.5 items-start justify-start w-full">
-			<h3 className="font-bold text-base text-black leading-normal">
+			<h3 className="font-bold text-base leading-normal">
 				{title}: {phase} <span className="font-normal">{icon || emoji}</span>
 			</h3>
 			{action && (
-				<p className="font-mono italic text-base text-black leading-normal">
+				<p className="font-mono italic text-base leading-normal">
 					{action}
 				</p>
 			)}
-			<p className="font-mono italic text-base text-black leading-normal min-h-[42px]">
+			<p className="font-mono italic text-base leading-normal min-h-[42px] ">
 				{description}
 			</p>
 		</div>
 		
-		{/* Date Text */}
-		{dateText && (
-			<p className="font-mono text-base text-gray-900 leading-normal">
-				{dateText}
-			</p>
-		)}
+		{/* Date Text - Always display if available */}
+		{dateText ? (
+			<div className="w-full">
+				<p className="font-mono text-base leading-normal">
+					{dateText}
+				</p>
+			</div>
+		) : null}
 		
 		{/* Reminder Button */}
 		{timeUntilPhase && !isCurrentPhase && (
@@ -112,7 +114,7 @@ export default function MoonPhaseCard({
 					toast.success('Subscribed!')
 				}}
 				disabled={subscribed}
-				className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base text-neutral-900 transition-colors text-balance"
+				className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance"
 				type="button"
 			>
 				{subscribed ? 'Subscribed!' : `Remind me ${timeUntilPhase}`}
@@ -122,7 +124,7 @@ export default function MoonPhaseCard({
 		{/* Current Phase Status */}
 		{timeUntilPhase && isCurrentPhase && (
 			<div className="py-2 text-center">
-				<p className="font-mono text-base text-black">
+				<p className="font-mono text-base">
 					Current phase {timeUntilPhase}
 				</p>
 			</div>

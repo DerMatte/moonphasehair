@@ -6,7 +6,8 @@ import {
 	CarouselPrevious,
 } from "@/components/ui/carousel";
 import MoonPhaseCard from "@/components/MoonphaseCard";
-import { MoonPhaseData } from "@/lib/MoonPhaseCalculator";
+import type { MoonPhaseData } from "@/lib/MoonPhaseCalculator";
+import { getNextMoonPhaseOccurrence } from "@/lib/MoonPhaseCalculator";
 import { formatDateWithTimezone } from "@/lib/utils";
 import { moonPhases } from "@/lib/consts";
 
@@ -92,23 +93,28 @@ export default function MoonCarousel({moonPhaseData}: {moonPhaseData: MoonPhaseD
 						))}
 
 						{/* Additional moon phases */}
-						{moonPhases.map((phase) => (
-							<CarouselItem
-								key={phase.name}
-								className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4"
-							>
-								<MoonPhaseCard
-									title="Phase"
-									phase={phase.name}
-									phaseValue={phase.phaseValue}
-									icon={phase.icon}
-									emoji={phase.emoji}
-									description={phase.description || ""}
-									dateText={formatDateWithTimezone(phase.startDate)}
-									action={phase.action}
-								/>
-							</CarouselItem>
-						))}
+						{moonPhases.map((phase) => {
+							const nextOccurrence = getNextMoonPhaseOccurrence(phase.name);
+							const dateText = nextOccurrence ? `${formatDateWithTimezone(nextOccurrence)}` : undefined;
+							
+							return (
+								<CarouselItem
+									key={phase.name}
+									className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4"
+								>
+									<MoonPhaseCard
+										title="Phase"
+										phase={phase.name}
+										phaseValue={phase.phaseValue}
+										icon={phase.icon}
+										emoji={phase.emoji}
+										description={phase.description || ""}
+										dateText={dateText}
+										action={phase.action}
+									/>
+								</CarouselItem>
+							);
+						})}
 					</CarouselContent>
 					<CarouselPrevious className="hidden md:flex bg-transparent -left-4 border-neutral-300 hover:border-neutral-400 text-neutral-800 transition-all duration-100 cursor-pointer hover:translate-x-0.5" />
 					<CarouselNext className="hidden md:flex bg-transparent -right-4 border-neutral-300 hover:border-neutral-400 text-neutral-800 transition-all duration-100 cursor-pointer hover:-translate-x-0.5" />
