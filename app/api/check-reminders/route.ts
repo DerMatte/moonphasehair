@@ -1,8 +1,12 @@
 import { kv } from '@vercel/kv';
 import { getMoonPhaseWithTiming, getNextMoonPhaseOccurrence } from '@/lib/MoonPhaseCalculator';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const keys = await kv.keys('*');
   
   for (const key of keys) {
