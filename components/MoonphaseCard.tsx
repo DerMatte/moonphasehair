@@ -2,7 +2,7 @@
 
 import MoonIcon from "@/components/MoonIcon";
 import { useState, useMemo } from 'react';
-import { getNextMoonPhaseOccurrence, getTimeUntilDate } from '@/lib/MoonPhaseCalculator';
+import { getNextMoonPhaseOccurrence, getTimeUntilDate, getMoonPhaseWithTiming } from '@/lib/MoonPhaseCalculator';
 
 // Moon phase card component
 export default function MoonPhaseCard({
@@ -25,12 +25,28 @@ export default function MoonPhaseCard({
 	const [subscribed, setSubscribed] = useState(false);
 
 	// Calculate the next occurrence of this phase and time until it
-	const { nextOccurrenceDate, timeUntilPhase } = useMemo(() => {
+	const { nextOccurrenceDate, timeUntilPhase, isCurrentPhase } = useMemo(() => {
+		// Check if this is the current phase
+		const currentPhaseData = getMoonPhaseWithTiming(new Date());
+		const isCurrent = currentPhaseData.current.name === phase;
+		
+		// For current phase, show time until it ends
+		if (isCurrent) {
+			const timeUntilEnd = getTimeUntilDate(currentPhaseData.current.endDate);
+			return {
+				nextOccurrenceDate: currentPhaseData.current.endDate,
+				timeUntilPhase: `ends ${timeUntilEnd}`,
+				isCurrentPhase: true
+			};
+		}
+		
+		// For other phases, show when they will occur next
 		const nextDate = getNextMoonPhaseOccurrence(phase);
 		const timeUntil = nextDate ? getTimeUntilDate(nextDate) : null;
 		return {
 			nextOccurrenceDate: nextDate,
-			timeUntilPhase: timeUntil
+			timeUntilPhase: timeUntil,
+			isCurrentPhase: false
 		};
 	}, [phase]);
 
@@ -73,7 +89,7 @@ export default function MoonPhaseCard({
 					<p className="text-sm text-gray-600 italic">{description}</p>
 					{dateText && <p className="text-xs text-gray-500 mt-2">{dateText}</p>}
 				</div>
-				{timeUntilPhase && (
+				{timeUntilPhase && !isCurrentPhase && (
 					<button
 						onClick={() => handleSubscribe(phase)}
 						disabled={subscribed}
@@ -82,6 +98,11 @@ export default function MoonPhaseCard({
 					>
 						{subscribed ? 'Subscribed!' : `Remind me (${timeUntilPhase})`}
 					</button>
+				)}
+				{timeUntilPhase && isCurrentPhase && (
+					<p className="mt-4 text-sm text-gray-600 font-medium">
+						Current phase {timeUntilPhase}
+					</p>
 				)}
 			</div>
 		</div>

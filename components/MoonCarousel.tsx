@@ -32,7 +32,7 @@ export default function MoonCarousel() {
 							<MoonPhaseCard
 								title="Previous"
 								phase={moonPhaseData.previous.name}
-								phaseValue={moonPhaseData.previous.phaseNumber / 8}
+								phaseValue={moonPhaseData.previous.phaseValue}
 								emoji={moonPhaseData.previous.emoji}
 								description={moonPhaseData.previous.description}
 								dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
@@ -48,7 +48,7 @@ export default function MoonCarousel() {
 								<MoonPhaseCard
 									title="Current"
 									phase={moonPhaseData.current.name}
-									phaseValue={moonPhaseData.current.phaseNumber / 8}
+									phaseValue={moonPhaseData.current.phaseValue}
 									emoji={moonPhaseData.current.emoji}
 									description={moonPhaseData.current.description}
 									dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
@@ -62,7 +62,7 @@ export default function MoonCarousel() {
 							<MoonPhaseCard
 								title="Next"
 								phase={moonPhaseData.next.name}
-								phaseValue={moonPhaseData.next.phaseNumber / 8}
+								phaseValue={moonPhaseData.next.phaseValue}
 								emoji={moonPhaseData.next.emoji}
 								description={moonPhaseData.next.description}
 								dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
@@ -116,7 +116,7 @@ export default function MoonCarousel() {
 				<MoonPhaseCard
 					title="Previous"
 					phase={moonPhaseData.previous.name}
-					phaseValue={moonPhaseData.previous.phaseNumber / 8}
+					phaseValue={moonPhaseData.previous.phaseValue}
 					emoji={moonPhaseData.previous.emoji}
 					description={moonPhaseData.previous.description}
 					dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
@@ -128,7 +128,7 @@ export default function MoonCarousel() {
 					<MoonPhaseCard
 						title="Current"
 						phase={moonPhaseData.current.name}
-						phaseValue={moonPhaseData.current.phaseNumber / 8}
+						phaseValue={moonPhaseData.current.phaseValue}
 						emoji={moonPhaseData.current.emoji}
 						description={moonPhaseData.current.description}
 						dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
@@ -140,7 +140,7 @@ export default function MoonCarousel() {
 				<MoonPhaseCard
 					title="Next"
 					phase={moonPhaseData.next.name}
-					phaseValue={moonPhaseData.next.phaseNumber / 8}
+					phaseValue={moonPhaseData.next.phaseValue}
 					emoji={moonPhaseData.next.emoji}
 					description={moonPhaseData.next.description}
 					dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}

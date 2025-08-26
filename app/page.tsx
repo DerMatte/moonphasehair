@@ -7,7 +7,6 @@ import {
 
 import MoonCarousel, { MoonCarouselSkeleton } from "@/components/MoonCarousel";
 import BigMoon from "@/components/BigMoon";
-import MoonIcon from "@/components/MoonIcon";
 import { Suspense } from "react";
 
 export const revalidate = 3600; // 1 hour (60 * 60)
@@ -22,7 +21,7 @@ export default function MoonHairDashboard() {
 			<div className="max-w-7xl mx-auto p-4">
 				<div className="lg:flex lg:flex-row-reverse lg:items-center lg:gap-12">
 					<div className="mb-8 lg:mb-0 lg:flex-1">
-						<BigMoon phase={moonPhaseData.current.phaseNumber / 8} />
+						<BigMoon phase={moonPhaseData.current.lunarAgePercent} />
 					</div>
 					<div className="lg:flex-1 lg:flex lg:flex-col lg:gap-15">
 						<div className="w-md inline-flex flex-col justify-start items-start gap-8 pb-16 md:pb-0 md:pt-16">
