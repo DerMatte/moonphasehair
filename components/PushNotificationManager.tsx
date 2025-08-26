@@ -54,6 +54,9 @@ export default function PushNotificationManager() {
       await sendNotification(subscription.toJSON(), 'Test Notification', message || 'Hello from Moon Hair!')
     }
   }
+  if (process.env.NODE_ENV === 'production') {
+    return null
+  }
 
   if (!isSupported) {
     return <p>Push notifications are not supported in this browser.</p>

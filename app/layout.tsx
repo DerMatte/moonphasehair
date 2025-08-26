@@ -7,6 +7,7 @@ import LocationInfo from "./LocationInfo";
 import ServiceWorker from "./ServiceWorker";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
 	title: "Moonphase Hair",
@@ -76,7 +77,7 @@ export default function RootLayout({
 								<LocationInfo />
 							</header>
 
-							<main className="flex-1 py-4 sm:py-6 overflow-auto">
+							<main className="flex-1 py-4 sm:py-6 overflow-x-hidden">
 								{children}
 							</main>
 
@@ -96,6 +97,8 @@ export default function RootLayout({
 						</div>
 					</div>
 				</div>
+
+				<Toaster />
 			</body>
 		</html>
 	);

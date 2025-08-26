@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
@@ -16,6 +17,11 @@ export default function InstallPrompt() {
   const [isIOS, setIsIOS] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
   const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isIOSPromptClosed, setIsIOSPromptClosed] = useState(false)
+
+  const handleCloseIOSPrompt = () => {
+    setIsIOSPromptClosed(true)
+  }
 
   useEffect(() => {
     setIsIOS(
@@ -43,7 +49,7 @@ export default function InstallPrompt() {
       return
     }
     const result = await promptInstall.prompt()
-    console.log('👍', 'userChoice', result)
+    toast.success('App installed successfully')
     setPromptInstall(null)
   }
 
@@ -52,10 +58,15 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="space-y-4">
-      {isIOS && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-          <p className="text-sm text-blue-800">
+    <div className="space-y-4 relative">
+      {isIOS && !isIOSPromptClosed && (
+        <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg relative ">
+          <div className="absolute top-2 right-2">
+            <Button onClick={handleCloseIOSPrompt} size="sm" className=" text-white hover:bg-sky-600">
+              X
+            </Button>
+          </div>
+          <p className="text-sm text-sky-800 text-balance">
             To install this app on your iOS device, tap the share button{' '}
             <span role="img" aria-label="share icon">
               ⎋
@@ -66,6 +77,7 @@ export default function InstallPrompt() {
             </span>
             .
           </p>
+          
         </div>
       )}
 
@@ -74,7 +86,7 @@ export default function InstallPrompt() {
           <p className="text-sm text-green-800 mb-2">
             Install Moonphase Hair app for the best experience!
           </p>
-          <Button onClick={handleInstallClick} size="sm">
+          <Button onClick={handleInstallClick} size="sm" className="bg-blue-500 text-white hover:bg-blue-600">
             Install App
           </Button>
         </div>

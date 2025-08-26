@@ -1,6 +1,8 @@
 import { moonPhases } from "@/lib/consts";
 import { Moon, LunarPhase } from "lunarphase-js";
 
+export type MoonPhaseData = ReturnType<typeof getMoonPhaseWithTiming>;
+
 // Map lunarphase-js phase names to our phase indices
 const phaseNameToIndex: Record<string, number> = {
     [LunarPhase.NEW]: 0,
@@ -109,6 +111,7 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
         name: upcomingPhaseData.name,
         phase: upcomingPhaseData.phaseValue,
         emoji: upcomingPhaseData.emoji,
+        icon: upcomingPhaseData.icon,
         description: upcomingPhaseData.description,
         action: upcomingPhaseData.action,
         date: upcomingDate

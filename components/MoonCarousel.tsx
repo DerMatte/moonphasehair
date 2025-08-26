@@ -6,16 +6,15 @@ import {
 	CarouselPrevious,
 } from "@/components/ui/carousel";
 import MoonPhaseCard from "@/components/MoonphaseCard";
-import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
+import { MoonPhaseData } from "@/lib/MoonPhaseCalculator";
 import { formatDateWithTimezone } from "@/lib/utils";
 import { moonPhases } from "@/lib/consts";
 
-export default function MoonCarousel() {
-	const moonPhaseData = getMoonPhaseWithTiming(new Date());
+export default function MoonCarousel({moonPhaseData}: {moonPhaseData: MoonPhaseData}) {
 
 	return (
 		<div className="mt-12 mb-8">
-			<h2 className="text-2xl font-bold font-sans mb-6">Moon Phases</h2>
+			<h3 className="text-2xl font-bold font-sans mb-6">Moon Phases</h3>
 
 			{/* Desktop horizontal carousel */}
 			<div className="hidden md:block relative">
@@ -33,6 +32,7 @@ export default function MoonCarousel() {
 								title="Previous"
 								phase={moonPhaseData.previous.name}
 								phaseValue={moonPhaseData.previous.phaseValue}
+								icon={moonPhaseData.previous.icon}
 								emoji={moonPhaseData.previous.emoji}
 								description={moonPhaseData.previous.description}
 								dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
@@ -49,6 +49,7 @@ export default function MoonCarousel() {
 									title="Current"
 									phase={moonPhaseData.current.name}
 									phaseValue={moonPhaseData.current.phaseValue}
+									icon={moonPhaseData.current.icon}
 									emoji={moonPhaseData.current.emoji}
 									description={moonPhaseData.current.description}
 									dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
@@ -63,6 +64,7 @@ export default function MoonCarousel() {
 								title="Next"
 								phase={moonPhaseData.next.name}
 								phaseValue={moonPhaseData.next.phaseValue}
+								icon={moonPhaseData.next.icon}
 								emoji={moonPhaseData.next.emoji}
 								description={moonPhaseData.next.description}
 								dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
@@ -80,6 +82,7 @@ export default function MoonCarousel() {
 									title="Upcoming"
 									phase={upcoming.name}
 									phaseValue={upcoming.phase}
+									icon={upcoming.icon}
 									emoji={upcoming.emoji}
 									description={upcoming.description || ""}
 									dateText={formatDateWithTimezone(upcoming.date)}
@@ -98,15 +101,17 @@ export default function MoonCarousel() {
 									title="Phase"
 									phase={phase.name}
 									phaseValue={phase.phaseValue}
+									icon={phase.icon}
 									emoji={phase.emoji}
 									description={phase.description || ""}
+									dateText={formatDateWithTimezone(phase.startDate)}
 									action={phase.action}
 								/>
 							</CarouselItem>
 						))}
 					</CarouselContent>
-					<CarouselPrevious className="hidden md:flex -left-4 bg-white/80 hover:bg-white shadow-lg" />
-					<CarouselNext className="hidden md:flex -right-4 bg-white/80 hover:bg-white shadow-lg" />
+					<CarouselPrevious className="hidden md:flex bg-transparent -left-4 border-neutral-300 hover:border-neutral-400 text-neutral-800 transition-all duration-100 cursor-pointer hover:translate-x-0.5" />
+					<CarouselNext className="hidden md:flex bg-transparent -right-4 border-neutral-300 hover:border-neutral-400 text-neutral-800 transition-all duration-100 cursor-pointer hover:-translate-x-0.5" />
 				</Carousel>
 			</div>
 
@@ -117,6 +122,7 @@ export default function MoonCarousel() {
 					title="Previous"
 					phase={moonPhaseData.previous.name}
 					phaseValue={moonPhaseData.previous.phaseValue}
+					icon={moonPhaseData.previous.icon}
 					emoji={moonPhaseData.previous.emoji}
 					description={moonPhaseData.previous.description}
 					dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
@@ -129,6 +135,7 @@ export default function MoonCarousel() {
 						title="Current"
 						phase={moonPhaseData.current.name}
 						phaseValue={moonPhaseData.current.phaseValue}
+						icon={moonPhaseData.current.icon}
 						emoji={moonPhaseData.current.emoji}
 						description={moonPhaseData.current.description}
 						dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
@@ -141,6 +148,7 @@ export default function MoonCarousel() {
 					title="Next"
 					phase={moonPhaseData.next.name}
 					phaseValue={moonPhaseData.next.phaseValue}
+					icon={moonPhaseData.next.icon}
 					emoji={moonPhaseData.next.emoji}
 					description={moonPhaseData.next.description}
 					dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
@@ -154,6 +162,7 @@ export default function MoonCarousel() {
 						title="Upcoming"
 						phase={upcoming.name}
 						phaseValue={upcoming.phase}
+						icon={upcoming.icon}
 						emoji={upcoming.emoji}
 						description={upcoming.description || ""}
 						dateText={formatDateWithTimezone(upcoming.date)}
@@ -169,7 +178,7 @@ export default function MoonCarousel() {
 export function MoonCarouselSkeleton() {
 	return (
 		<div className="mt-12 mb-8">
-			<h2 className="text-2xl font-bold font-sans mb-6">Moon Phases</h2>
+			<h3 className="text-2xl font-bold font-sans mb-6">Moon Phases</h3>
 			<div className="flex flex-col gap-4">
 				<div className="h-12 w-full bg-neutral-200 animate-pulse rounded-md" />
 				<div className="h-12 w-full bg-neutral-200 animate-pulse rounded-md" />

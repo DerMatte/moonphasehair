@@ -3,6 +3,7 @@
 import MoonIcon from "@/components/MoonIcon";
 import { useState, useMemo } from 'react';
 import { getNextMoonPhaseOccurrence, getTimeUntilDate, getMoonPhaseWithTiming } from '@/lib/MoonPhaseCalculator';
+import { toast } from 'sonner';
 
 // Moon phase card component
 export default function MoonPhaseCard({
@@ -11,6 +12,7 @@ export default function MoonPhaseCard({
 	phaseValue,
 	description,
 	emoji,
+	icon,
 	dateText,
 	action,
 }: {
@@ -19,6 +21,7 @@ export default function MoonPhaseCard({
 	phaseValue: number;
 	description: string;
 	emoji: string;
+	icon?: string;
 	dateText?: string;
 	action?: string;
 }) {
@@ -76,35 +79,54 @@ export default function MoonPhaseCard({
 	};
 
 	return (
-		<div className=" border-neutral-200 p-6 h-full">
-			<div className="flex flex-col items-center text-center space-y-4">
-				<MoonIcon phase={phaseValue} />
-				<div className="space-y-2">
-					<h3 className="font-semibold text-lg text-gray-900">
-						{title}: {phase} <span className="text-2xl">{emoji}</span>
-					</h3>
-					{action && (
-						<p className="text-sm font-medium text-gray-700">{action}</p>
-					)}
-					<p className="text-sm text-gray-600 italic">{description}</p>
-					{dateText && <p className="text-xs text-gray-500 mt-2">{dateText}</p>}
-				</div>
-				{timeUntilPhase && !isCurrentPhase && (
-					<button
-						onClick={() => handleSubscribe(phase)}
-						disabled={subscribed}
-						className="mt-4 px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 transition-colors"
-						type="button"
-					>
-						{subscribed ? 'Subscribed!' : `Remind me (${timeUntilPhase})`}
-					</button>
-				)}
-				{timeUntilPhase && isCurrentPhase && (
-					<p className="mt-4 text-sm text-gray-600 font-medium">
-						Current phase {timeUntilPhase}
-					</p>
-				)}
-			</div>
+		<div className="flex flex-col gap-4 h-full items-start justify-start p-6">
+		{/* Moon Icon */}
+			<MoonIcon phase={phaseValue} />
+		{/* Phase Info */}
+		<div className="flex flex-col gap-1.5 items-start justify-start w-full">
+			<h3 className="font-bold text-base text-black leading-normal">
+				{title}: {phase} <span className="font-normal">{icon || emoji}</span>
+			</h3>
+			{action && (
+				<p className="font-mono italic text-base text-black leading-normal">
+					{action}
+				</p>
+			)}
+			<p className="font-mono italic text-base text-black leading-normal min-h-[42px]">
+				{description}
+			</p>
 		</div>
+		
+		{/* Date Text */}
+		{dateText && (
+			<p className="font-mono text-base text-gray-900 leading-normal">
+				{dateText}
+			</p>
+		)}
+		
+		{/* Reminder Button */}
+		{timeUntilPhase && !isCurrentPhase && (
+			<button
+				onClick={() => {
+					handleSubscribe(phase)
+					toast.success('Subscribed!')
+				}}
+				disabled={subscribed}
+				className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base text-neutral-900 transition-colors text-balance"
+				type="button"
+			>
+				{subscribed ? 'Subscribed!' : `Remind me ${timeUntilPhase}`}
+			</button>
+		)}
+		
+		{/* Current Phase Status */}
+		{timeUntilPhase && isCurrentPhase && (
+			<div className="py-2 text-center">
+				<p className="font-mono text-base text-black">
+					Current phase {timeUntilPhase}
+				</p>
+			</div>
+		)}
+	</div>
 	);
 }
