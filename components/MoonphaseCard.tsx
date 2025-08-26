@@ -54,28 +54,39 @@ export default function MoonPhaseCard({
 	}, [phase]);
 
 	const handleSubscribe = async (targetPhase: string) => {
-		if (!('PushManager' in window)) return alert('Push notifications not supported');
+		try {
+			if (!('PushManager' in window)) return alert('Push notifications not supported');
 
-		const permission = await Notification.requestPermission();
-		if (permission !== 'granted') return;
+			const permission = await Notification.requestPermission();
+			if (permission !== 'granted') return;
 
-		const registration = await navigator.serviceWorker.ready;
-		const subscription = await registration.pushManager.subscribe({
-			userVisibleOnly: true,
-			applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-		});
+			const registration = await navigator.serviceWorker.ready;
+			const subscription = await registration.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+			});
 
-		// Use the calculated next occurrence date
-		const nextDate = nextOccurrenceDate?.toISOString() || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+			// Use the calculated next occurrence date
+			const nextDate = nextOccurrenceDate?.toISOString() || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-		// Send to API
-		await fetch('/api/subscribe', {
-			method: 'POST',
-			body: JSON.stringify({ subscription: JSON.stringify(subscription), targetPhase, nextDate }),
-			headers: { 'Content-Type': 'application/json' },
-		});
+			// Send to API
+			const response = await fetch('/api/subscribe', {
+				method: 'POST',
+				body: JSON.stringify({ subscription, targetPhase, nextDate }),
+				headers: { 'Content-Type': 'application/json' },
+			});
 
-		setSubscribed(true);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to subscribe');
+			}
+
+			setSubscribed(true);
+			toast.success('Subscribed!');
+		} catch (error) {
+			console.error('Subscription failed:', error);
+			toast.error('Failed to subscribe. Please try again.');
+		}
 	};
 
 	return (
@@ -109,10 +120,7 @@ export default function MoonPhaseCard({
 		{/* Reminder Button */}
 		{timeUntilPhase && !isCurrentPhase && (
 			<button
-				onClick={() => {
-					handleSubscribe(phase)
-					toast.success('Subscribed!')
-				}}
+				onClick={() => handleSubscribe(phase)}
 				disabled={subscribed}
 				className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance"
 				type="button"
