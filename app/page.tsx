@@ -8,6 +8,8 @@ import {
 import MoonCarousel, { MoonCarouselSkeleton } from "@/components/MoonCarousel";
 import BigMoon from "@/components/BigMoon";
 import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const revalidate = 3600; // 1 hour (60 * 60)
 
@@ -60,6 +62,18 @@ export default function MoonHairDashboard() {
 									</span>
 								</div>
 							</div>
+						</div>
+						
+						{/* Full Moon Fasting Link */}
+						<div className="mt-8">
+							<Link href="/fasting">
+								<Button variant={moonPhaseData.current.name === "Full Moon" ? "default" : "outline"} className="w-full sm:w-auto">
+									🌕 Full Moon Fasting
+									{moonPhaseData.current.name === "Full Moon" && (
+										<span className="ml-2 text-xs">Now Active</span>
+									)}
+								</Button>
+							</Link>
 						</div>
 					</div>
 				</div>
