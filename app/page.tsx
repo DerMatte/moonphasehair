@@ -66,7 +66,7 @@ export default function MoonHairDashboard() {
 						
 						{/* Full Moon Fasting Link */}
 						<div className="mt-8">
-							<Link href="/fasting">
+							<Link href="/full-moon-fasting">
 								<Button variant={moonPhaseData.current.name === "Full Moon" ? "default" : "outline"} className="w-full sm:w-auto">
 									🌕 Full Moon Fasting
 									{moonPhaseData.current.name === "Full Moon" && (

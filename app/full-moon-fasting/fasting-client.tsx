@@ -198,49 +198,26 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
   const isFullMoon = currentPhase === 'Full Moon'
 
   return (
-    <div className="space-y-6">
-      {/* Current Phase Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Moon className="w-5 h-5" />
-            Current Moon Phase
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-medium">{currentPhase}</span>
-            {isFullMoon && (
-              <Badge variant="default">Optimal Fasting Time</Badge>
-            )}
-          </div>
-          {nextFullMoon && !isFullMoon && (
-            <p className="text-sm text-muted-foreground mt-2">
-              Next full moon: {new Date(nextFullMoon).toLocaleDateString()}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Active Fast Timer */}
+    <>
+      {/* Active Fast Timer - Full Width When Active */}
       {fastingState.isActive && (
-        <Card className="border-primary">
+        <Card className="border-primary mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Timer className="w-5 h-5 animate-pulse" />
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Timer className="w-6 h-6 animate-pulse" />
               Fast in Progress
             </CardTitle>
             <CardDescription>
-              {fastingState.duration} hour fast
+              {fastingState.duration} hour full moon fast
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center space-y-4">
-              <div className="text-4xl font-bold font-mono">{timeRemaining}</div>
+            <div className="text-center space-y-6">
+              <div className="text-6xl font-bold font-mono">{timeRemaining}</div>
               <div className="text-sm text-muted-foreground">
                 Started: {fastingState.startTime && new Date(fastingState.startTime).toLocaleString()}
               </div>
-              <Button onClick={stopFast} variant="destructive" className="w-full">
+              <Button onClick={stopFast} variant="destructive" size="lg">
                 Stop Fast
               </Button>
             </div>
@@ -248,105 +225,109 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
         </Card>
       )}
 
-      {/* Fast Selection */}
+      {/* Grid Layout for Selection and Stats */}
       {!fastingState.isActive && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Choose Your Fast Duration</CardTitle>
-            <CardDescription>
-              Select how long you want to fast around the full moon peak
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <RadioGroup value={String(fastDuration)} onValueChange={(v) => setFastDuration(Number(v) as FastDuration)}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Fast Selection - Spans 2 columns on large screens */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-xl">Choose Your Fast Duration</CardTitle>
+              <CardDescription>
+                Select how long you want to fast around the full moon peak
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <RadioGroup value={String(fastDuration)} onValueChange={(v) => setFastDuration(Number(v) as FastDuration)}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="24" id="24h" />
+                    <Label htmlFor="24h" className="cursor-pointer space-y-1">
+                      <div className="font-medium">24 Hour Fast</div>
+                      <div className="text-sm text-muted-foreground">
+                        12h before to 12h after
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="48" id="48h" />
+                    <Label htmlFor="48h" className="cursor-pointer space-y-1">
+                      <div className="font-medium">48 Hour Fast</div>
+                      <div className="text-sm text-muted-foreground">
+                        24h before to 24h after
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="72" id="72h" />
+                    <Label htmlFor="72h" className="cursor-pointer space-y-1">
+                      <div className="font-medium">72 Hour Fast</div>
+                      <div className="text-sm text-muted-foreground">
+                        36h before to 36h after
+                      </div>
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              {/* Fasting Times Preview */}
+              {fastingTimes.start && fastingTimes.end && (
+                <Alert className="bg-primary/5 border-primary/20">
+                  <AlertDescription>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div><strong>Start:</strong> {fastingTimes.start.toLocaleString()}</div>
+                      <div><strong>End:</strong> {fastingTimes.end.toLocaleString()}</div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex gap-3">
+                <Button onClick={startFast} className="flex-1" size="lg" disabled={!nextFullMoon}>
+                  Start Fast
+                </Button>
+                {isNotificationSupported && (
+                  <Button
+                    onClick={toggleNotifications}
+                    variant="outline"
+                    size="lg"
+                    className="px-4"
+                    title={subscription ? 'Disable notifications' : 'Enable notifications'}
+                  >
+                    {subscription ? <BellOff className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats - Single column on large screens */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Tips</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <RadioGroupItem value="24" id="24h" />
-                  <Label htmlFor="24h" className="cursor-pointer space-y-1">
-                    <div className="font-medium">24 Hour Fast</div>
-                    <div className="text-sm text-muted-foreground">
-                      12 hours before to 12 hours after full moon peak
-                    </div>
-                  </Label>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">Stay hydrated with water and herbal teas</p>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <RadioGroupItem value="48" id="48h" />
-                  <Label htmlFor="48h" className="cursor-pointer space-y-1">
-                    <div className="font-medium">48 Hour Fast</div>
-                    <div className="text-sm text-muted-foreground">
-                      24 hours before to 24 hours after full moon peak
-                    </div>
-                  </Label>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">Light exercise like walking or yoga is beneficial</p>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <RadioGroupItem value="72" id="72h" />
-                  <Label htmlFor="72h" className="cursor-pointer space-y-1">
-                    <div className="font-medium">72 Hour Fast</div>
-                    <div className="text-sm text-muted-foreground">
-                      36 hours before to 36 hours after full moon peak
-                    </div>
-                  </Label>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">Break your fast gently with light foods</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">Listen to your body and stop if unwell</p>
                 </div>
               </div>
-            </RadioGroup>
-
-            {/* Fasting Times Preview */}
-            {fastingTimes.start && fastingTimes.end && (
-              <Alert>
-                <AlertDescription>
-                  <div className="space-y-1">
-                    <div><strong>Start:</strong> {fastingTimes.start.toLocaleString()}</div>
-                    <div><strong>End:</strong> {fastingTimes.end.toLocaleString()}</div>
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="flex gap-3">
-              <Button onClick={startFast} className="flex-1" disabled={!nextFullMoon}>
-                Start Fast
-              </Button>
-              {isNotificationSupported && (
-                <Button
-                  onClick={toggleNotifications}
-                  variant="outline"
-                  size="icon"
-                  title={subscription ? 'Disable notifications' : 'Enable notifications'}
-                >
-                  {subscription ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
-
-      {/* Fasting Benefits */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Full Moon Fasting Benefits</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <span className="text-sm">Enhanced detoxification during the moon's gravitational peak</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <span className="text-sm">Improved mental clarity and spiritual connection</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <span className="text-sm">Better sleep patterns and hormonal balance</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <span className="text-sm">Alignment with natural lunar rhythms</span>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
+    </>
   )
 }
