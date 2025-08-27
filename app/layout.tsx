@@ -9,6 +9,7 @@ import ServiceWorker from "./ServiceWorker";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner"
+import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://moonphasehair.com"),
@@ -114,7 +115,8 @@ export default function RootLayout({
 									"clamp(1rem, 4vh, 2rem) clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 6vh, 3rem) clamp(1.5rem, 4vw, 3rem)",
 							}}
 						>
-							<header className="flex flex-row-reverse items-center justify-between px-4 py-4 sm:py-6">
+							<header className="flex flex-row items-center justify-between px-4 py-4 sm:py-6">
+								<Navbar />
 								<LocationInfo />
 							</header>
 
