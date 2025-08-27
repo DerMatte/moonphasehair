@@ -22,6 +22,7 @@ type FastingState = {
   startTime: string | null
   endTime: string | null
   duration: FastDuration
+  scheduled: boolean
 }
 
 export default function FastingClient({ currentPhase, nextFullMoon }: FastingClientProps) {
@@ -30,7 +31,8 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
     isActive: false,
     startTime: null,
     endTime: null,
-    duration: 24
+    duration: 24,
+    scheduled: false
   })
   const [timeRemaining, setTimeRemaining] = useState<string>('')
   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
@@ -86,6 +88,17 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
 
   // Timer update effect
   useEffect(() => {
+    // Check if scheduled fast should start
+    if (fastingState.scheduled && !fastingState.isActive && fastingState.startTime) {
+      const now = new Date()
+      const start = new Date(fastingState.startTime)
+      if (now >= start) {
+        // Start the fast
+        setFastingState(prev => ({ ...prev, isActive: true, scheduled: false }))
+        toast.success('Your scheduled fast has begun!')
+      }
+    }
+
     if (!fastingState.isActive || !fastingState.endTime) return
 
     const interval = setInterval(() => {
@@ -96,14 +109,14 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
       if (diff <= 0) {
         // Fast completed
         setTimeRemaining('Fast completed! 🎉')
-        setFastingState({ isActive: false, startTime: null, endTime: null, duration: 24 })
+        setFastingState({ isActive: false, startTime: null, endTime: null, duration: 24, scheduled: false })
         // Send completion notification
         if (subscription) {
           sendNotification(
             subscription.toJSON(),
             'Fast Completed! 🎉',
             `Congratulations! You've completed your ${fastingState.duration}h full moon fast.`,
-            '/fasting'
+            '/full-moon-fasting'
           )
         }
         clearInterval(interval)
@@ -128,7 +141,14 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
     // Check if we should start now or schedule for later
     if (times.start > now) {
       // Schedule for future
-      toast.info(`Fast scheduled to start at ${times.start.toLocaleString()}`)
+      setFastingState({
+        isActive: false,
+        startTime: times.start.toISOString(),
+        endTime: times.end.toISOString(),
+        duration: fastDuration,
+        scheduled: true
+      })
+      toast.success(`I'm fasting this full moon! Starts ${times.start.toLocaleDateString()}`)
       
       // Subscribe to start notification
       if (subscription) {
@@ -137,7 +157,7 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
           subscription.toJSON(),
           'Full Moon Fast Scheduled',
           `Your ${fastDuration}h fast will begin in ${hoursUntilStart} hours`,
-          '/fasting'
+          '/full-moon-fasting'
         )
       }
     } else if (times.end > now) {
@@ -146,7 +166,8 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
         isActive: true,
         startTime: now.toISOString(),
         endTime: times.end.toISOString(),
-        duration: fastDuration
+        duration: fastDuration,
+        scheduled: false
       })
       toast.success('Fast started!')
     } else {
@@ -156,7 +177,7 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
 
   // Stop fasting
   const stopFast = () => {
-    setFastingState({ isActive: false, startTime: null, endTime: null, duration: 24 })
+    setFastingState({ isActive: false, startTime: null, endTime: null, duration: 24, scheduled: false })
     toast.info('Fast stopped')
   }
 
@@ -168,7 +189,7 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
       if (subscription) {
         // Unsubscribe
         await subscription.unsubscribe()
-        await unsubscribeUser(subscription.endpoint)
+        await unsubscribeUser(subscription.endpoint, 'fasting')
         setSubscription(null)
         toast.success('Notifications disabled')
       } else {
@@ -184,7 +205,8 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
         await subscribeUser(
           sub.toJSON(), 
           'Full Moon Fasting', 
-          nextFullMoon || new Date().toISOString()
+          nextFullMoon || new Date().toISOString(),
+          'fasting'
         )
         toast.success('Notifications enabled')
       }
@@ -220,6 +242,34 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
               <Button onClick={stopFast} variant="destructive" size="lg">
                 Stop Fast
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Scheduled Fast Info */}
+      {fastingState.scheduled && !fastingState.isActive && (
+        <Card className="border-green-500/50 bg-green-500/5 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+              Fast Scheduled
+            </CardTitle>
+            <CardDescription>
+              You're committed to fasting this full moon!
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm">
+                <strong>Duration:</strong> {fastingState.duration} hours
+              </p>
+              <p className="text-sm">
+                <strong>Starts:</strong> {fastingState.startTime && new Date(fastingState.startTime).toLocaleString()}
+              </p>
+              <p className="text-sm">
+                <strong>Ends:</strong> {fastingState.endTime && new Date(fastingState.endTime).toLocaleString()}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -282,8 +332,21 @@ export default function FastingClient({ currentPhase, nextFullMoon }: FastingCli
               )}
 
               <div className="flex gap-3">
-                <Button onClick={startFast} className="flex-1" size="lg" disabled={!nextFullMoon}>
-                  Start Fast
+                <Button 
+                  onClick={fastingState.scheduled ? stopFast : startFast} 
+                  className="flex-1" 
+                  size="lg" 
+                  disabled={!nextFullMoon}
+                  variant={fastingState.scheduled ? "secondary" : "default"}
+                >
+                  {fastingState.scheduled ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      I'm fasting this full moon
+                    </>
+                  ) : (
+                    "Start Fast"
+                  )}
                 </Button>
                 {isNotificationSupported && (
                   <Button
