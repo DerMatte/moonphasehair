@@ -28,14 +28,11 @@ export default function MoonHairDashboard() {
 					<div className="lg:flex-1 lg:flex lg:flex-col lg:gap-15">
 						<div className="w-md inline-flex flex-col justify-start items-start gap-8 pb-16 md:pb-0 md:pt-16">
 							<h1 className="self-stretch justify-start text-3xl font-bold font-sans md:text-5xl">
-								Moon Hair Dashboard
+								Cut your Hair according to the phase of the moon
 							</h1>
 							<h2 className="self-stretch justify-start text-base font-normal font-mono text-balance max-w-[80dvw]">
-								Intrinsic Knowledge from my favourite X Account.
+								Intrinsic Knowledge from my favourite X Account visualised as an interactive app.
 								<br />
-								<span className="italic">
-									Cut your Hair according to the phase of the moon.
-								</span>{" "}
 								Make sure to pass the knowledge on and share it with your
 								friends.
 							</h2>
@@ -62,18 +59,6 @@ export default function MoonHairDashboard() {
 									</span>
 								</div>
 							</div>
-						</div>
-						
-						{/* Full Moon Fasting Link */}
-						<div className="mt-8">
-							<Link href="/full-moon-fasting">
-								<Button variant={moonPhaseData.current.name === "Full Moon" ? "default" : "outline"} className="w-full sm:w-auto">
-									🌕 Full Moon Fasting
-									{moonPhaseData.current.name === "Full Moon" && (
-										<span className="ml-2 text-xs">Now Active</span>
-									)}
-								</Button>
-							</Link>
 						</div>
 					</div>
 				</div>
