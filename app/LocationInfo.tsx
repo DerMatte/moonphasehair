@@ -36,12 +36,13 @@ export default async function LocationInfo() {
 	}
 
 	const displayLocation =
-		locationData.region && locationData.region !== locationData.city
-			? `${locationData.city}, ${locationData.region}, ${locationData.country}`
-			: `${locationData.city}, ${locationData.country}`;
+		locationData.city && locationData.city !== locationData.country
+			? `${locationData.city}, ${locationData.country}`
+			: locationData.country;
+
 
 	return (
-		<div className="flex items-center gap-2 text-sm text-neutral-600">
+		<div className="inline-flex items-center gap-2 text-sm text-neutral-600 whitespace-nowrap"> 
 			<Pin size={32} />
 			<span
 				className={cn(

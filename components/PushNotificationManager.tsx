@@ -62,7 +62,7 @@ export default function PushNotificationManager() {
     return <p>Push notifications are not supported in this browser.</p>
   }
   return (
-    <Card className="space-y-4 p-4">
+    <Card className="space-y-4 p-4 bg-neutral-100/90">
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="push-notifications">
           <AccordionTrigger className="text-left">

@@ -1,4 +1,6 @@
 // Big moon phase component using moon-pattern.png
+import Image from "next/image";
+
 export default function BigMoon({ phase }: { phase: number }) {
 	// Use viewBox units instead of pixels for better scaling
 	const viewBoxSize = 100;
@@ -8,7 +10,7 @@ export default function BigMoon({ phase }: { phase: number }) {
 	const calculatePath = (phase: number) => {
 		// Normalize phase to 0-1 range
 		const normalizedPhase = phase % 1;
-		
+
 		if (normalizedPhase === 0 || normalizedPhase >= 0.99) {
 			// New moon - no dark overlay (now fully illuminated)
 			return "";
@@ -34,22 +36,24 @@ export default function BigMoon({ phase }: { phase: number }) {
 			{/* Moon container with border */}
 			<div className="relative w-full h-full rounded-full border-2 border-gray-300/30 p-[2%]">
 				{/* Cool Arrow in bottom left corner */}
+				{/** biome-ignore lint/performance/noImgElement: svgs are better like this */}
 				<img
 					src="/CoolArrow.svg"
 					alt=""
 					className="absolute bottom-0 left-0 -translate-x-4 -translate-y-4 -z-10 w-1/2"
 				/>
-				
+
 				{/* Moon texture background */}
-				<div
-					className="relative w-full h-full rounded-full overflow-hidden"
-					style={{
-						backgroundImage: "url(/moon-pattern.png)",
-						backgroundSize: "cover",
-						backgroundPosition: "center",
-						filter: "brightness(1.3) contrast(1.2)",
-					}}
-				>
+				<div className="relative w-full h-full rounded-full overflow-hidden">
+					{/* Next.js optimized background image */}
+					<Image
+						src="/moon-pattern.png"
+						alt="Moon surface texture"
+						fill
+						priority
+						sizes="(max-width: 640px) 400px, (max-width: 768px) 500px, (max-width: 1024px) 600px, 700px"
+						className="object-cover brightness-[1.3] contrast-[1.2]"
+					/>
 					{/* Simplified dark overlay for the moon phase */}
 					<svg
 						width="100%"
@@ -61,17 +65,22 @@ export default function BigMoon({ phase }: { phase: number }) {
 						<title>{`Moon phase visualization - Phase: ${(phase * 100).toFixed(1)}%`}</title>
 						<defs>
 							{/* Improved gradient for more realistic shadow */}
-							<radialGradient id={`moonShadowGradient-${phase}`} cx="50%" cy="50%" r="50%">
+							<radialGradient
+								id={`moonShadowGradient-${phase}`}
+								cx="50%"
+								cy="50%"
+								r="50%"
+							>
 								<stop offset="0%" stopColor="rgba(0,0,0,0.7)" />
 								<stop offset="70%" stopColor="rgba(0,0,0,0.85)" />
 								<stop offset="100%" stopColor="rgba(0,0,0,0.95)" />
 							</radialGradient>
 						</defs>
-						
+
 						{/* Draw the shadow path if it exists */}
 						{calculatePath(phase) && (
-							<path 
-								d={calculatePath(phase)} 
+							<path
+								d={calculatePath(phase)}
 								fill={`url(#moonShadowGradient-${phase})`}
 								opacity="0.9"
 							/>
@@ -85,7 +94,7 @@ export default function BigMoon({ phase }: { phase: number }) {
 
 			{/* Bottom glow for extra effect */}
 			<div className="absolute -bottom-[10%] left-1/2 -translate-x-1/2 w-3/4 h-[10%] bg-neutral-200/20 blur-xl rounded-full" />
-			
+
 			{/* Debug info - remove in production */}
 			<div className="absolute hidden md:inline-block -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 font-mono">
 				Phase: {(phase * 100).toFixed(1)}%
@@ -93,4 +102,3 @@ export default function BigMoon({ phase }: { phase: number }) {
 		</div>
 	);
 }
-
