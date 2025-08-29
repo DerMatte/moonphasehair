@@ -12,8 +12,11 @@ import { Toaster } from "@/components/ui/sonner"
 import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://moonphasehair.com"),
-	title: "Moonphase Hair",
+	metadataBase: new URL("https://www.moonphasehair.com"),
+	title: {
+		template: "%s | Moonphase Hair",
+		default: "Moonphase Hair",
+	},
 	description:
 		"How the current moon phase affects your hair growth and styling.",
 	manifest: "/site.webmanifest",
@@ -26,10 +29,10 @@ export const metadata: Metadata = {
 		description:
 			"Learn how the current moon phase affects your hair growth and styling.",
 		siteName: "Moonphase Hair",
-		url: "https://moonphasehair.com",
+		url: "https://www.moonphasehair.com",
 		images: [
 			{
-				url: "https://moonphasehair.com/opengraph-image.png",
+				url: "/opengraph-image.png",
 			},
 		],
 		locale: "en_US",
@@ -40,7 +43,7 @@ export const metadata: Metadata = {
 		title: "Moonphase Hair",
 		description:
 			"Learn how the current moon phase affects your hair growth and styling.",
-		images: ["https://moonphasehair.com/twitter-image.png"],
+		images: ["/twitter-image.png"],
 		// creator: "@moonphasehair",
 	},
 	icons: {

@@ -14,6 +14,34 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Moon, Calendar, Heart, Brain, Sparkles, Clock } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "Full Moon Fasting",
+	description:
+		"Align your fasting practice with the lunar cycle for optimal results and get rid of all the nasty parasites.",
+	openGraph: {
+		title: "Full Moon Fasting",
+		description:
+			"Align your fasting practice with the lunar cycle for optimal results and get rid of all the nasty parasites.",
+		images: [
+			"https://www.moonphasehair.com/full-moon-fasting/opengraph-image.png",
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "Full Moon Fasting",
+		description:
+			"Align your fasting practice with the lunar cycle for optimal results and get rid of all the nasty parasites.",
+		images: [
+			"https://www.moonphasehair.com/full-moon-fasting/twitter-image.png",
+		],
+		// site: "@moonphasehairbot",
+		// creator: "@moonphasehairbot",
+		// creatorId: "17180874",
+		// siteId: "17180874",
+	},
+};
 
 export default function FastingPage() {
 	// Get current moon phase data and next full moon
