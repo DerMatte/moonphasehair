@@ -13,13 +13,15 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 )
 
-export async function subscribeUser(subscriptionData: any, targetPhase: string, nextDate: string) {
+export async function subscribeUser(subscriptionData: any, targetPhase: string, nextDate: string, subscriptionType: 'hair' | 'fasting' = 'hair') {
   try {
-    // Store in KV (use endpoint as key for uniqueness)
-    await kv.set(subscriptionData.endpoint, JSON.stringify({ 
+    // Store in KV with endpoint and type as key for uniqueness
+    const key = `${subscriptionData.endpoint}:${subscriptionType}`;
+    await kv.set(key, JSON.stringify({ 
       subscription: subscriptionData, 
       targetPhase, 
       nextDate,
+      subscriptionType,
       createdAt: new Date().toISOString()
     }));
     
@@ -30,9 +32,10 @@ export async function subscribeUser(subscriptionData: any, targetPhase: string, 
   }
 }
 
-export async function unsubscribeUser(endpoint: string) {
+export async function unsubscribeUser(endpoint: string, subscriptionType: 'hair' | 'fasting' = 'hair') {
   try {
-    await kv.del(endpoint);
+    const key = `${endpoint}:${subscriptionType}`;
+    await kv.del(key);
     return { success: true }
   } catch (error) {
     console.error('Error removing subscription:', error);

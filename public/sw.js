@@ -11,6 +11,8 @@ self.addEventListener('push', function (event) {
         primaryKey: '1',
         url: data.url || '/'
       },
+      tag: data.tag || 'default',
+      requireInteraction: data.requireInteraction || false
     }
     event.waitUntil(self.registration.showNotification(data.title, options))
   }

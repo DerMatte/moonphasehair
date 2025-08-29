@@ -37,7 +37,7 @@ export default function PushNotificationManager() {
     setSubscription(sub)
     
     // For now, subscribe to new moon phase (you can modify this)
-    const result = await subscribeUser(sub.toJSON(), 'New Moon', new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())
+    const result = await subscribeUser(sub.toJSON(), 'New Moon', new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), 'hair')
     console.log('Subscription result:', result)
   }
 
@@ -45,7 +45,7 @@ export default function PushNotificationManager() {
     await subscription?.unsubscribe()
     setSubscription(null)
     if (subscription) {
-      await unsubscribeUser(subscription.endpoint)
+      await unsubscribeUser(subscription.endpoint, 'hair')
     }
   }
 
