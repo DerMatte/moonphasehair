@@ -5,16 +5,14 @@ import { LoginForm } from '@/components/auth/login-form'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string }>
+  searchParams: { redirect?: string }
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
   if (user) {
-    const params = await searchParams
-    redirect(params.redirect || '/')
+    redirect(searchParams.redirect || '/')
   }
 
-  const params = await searchParams
-  return <LoginForm redirectTo={params.redirect} />
+  return <LoginForm redirectTo={searchParams.redirect} />
 }

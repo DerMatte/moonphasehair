@@ -20,6 +20,9 @@ import {
 } from "@/app/actions";
 import { toast } from "sonner";
 import { cn, formatDateTime } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 interface FastingClientProps {
 	currentPhase: string;
@@ -52,6 +55,9 @@ export default function FastingClient({
 		null,
 	);
 	const [isNotificationSupported, setIsNotificationSupported] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
+	const router = useRouter();
+	const supabase = createClient();
 
 	// Check if user is subscribed to notifications
 	const checkNotificationSubscription = useCallback(async () => {
@@ -64,8 +70,18 @@ export default function FastingClient({
 		}
 	}, []);
 
-	// Load fasting state from localStorage
+	// Load fasting state from localStorage and check auth
 	useEffect(() => {
+		// Check authentication status
+		supabase.auth.getUser().then(({ data: { user } }) => {
+			setUser(user);
+		});
+
+		// Listen for auth changes
+		const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
 		const saved = localStorage.getItem("fastingState");
 		if (saved) {
 			const parsed = JSON.parse(saved);
@@ -77,7 +93,9 @@ export default function FastingClient({
 			setIsNotificationSupported(true);
 			checkNotificationSubscription();
 		}
-	}, [checkNotificationSubscription]);
+
+		return () => authSubscription.unsubscribe();
+	}, [checkNotificationSubscription, supabase.auth]);
 
 	// Save fasting state to localStorage
 	useEffect(() => {
@@ -250,6 +268,13 @@ export default function FastingClient({
 	// Toggle notifications
 	const toggleNotifications = async () => {
 		if (!isNotificationSupported) return;
+
+		// Check if user is authenticated
+		if (!user) {
+			toast.error("Please sign in to enable notifications");
+			router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+			return;
+		}
 
 		try {
 			if (subscription) {

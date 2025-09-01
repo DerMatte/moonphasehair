@@ -59,6 +59,13 @@ export default function MoonPhaseCard({
 
 	const handleSubscribe = async (targetPhase: string) => {
 		try {
+			// Check if user is authenticated
+			if (!user) {
+				toast.error("Please sign in to enable notifications");
+				router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+				return;
+			}
+
 			if (!("PushManager" in window))
 				return alert("Push notifications not supported");
 
@@ -85,6 +92,11 @@ export default function MoonPhaseCard({
 
 			if (!response.ok) {
 				const errorData = await response.json();
+				if (response.status === 401) {
+					toast.error("Please sign in to enable notifications");
+					router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+					return;
+				}
 				throw new Error(errorData.error || "Failed to subscribe");
 			}
 
@@ -128,7 +140,7 @@ export default function MoonPhaseCard({
 					className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance"
 					type="button"
 				>
-					{subscribed ? "Subscribed!" : `Remind me ${timeUntilPhase}`}
+					{subscribed ? "Subscribed!" : (user ? `Remind me ${timeUntilPhase}` : "Sign in to subscribe")}
 				</button>
 			)}
 

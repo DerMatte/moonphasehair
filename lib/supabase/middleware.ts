@@ -29,8 +29,24 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // IMPORTANT: DO NOT REMOVE auth.getUser()
   // This will refresh session if expired - required for Server Components
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Public routes that don't require authentication
+  const publicRoutes = ['/', '/full-moon-fasting', '/auth/login', '/auth/callback', '/auth/auth-code-error']
+  const isPublicRoute = publicRoutes.some(route => 
+    request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith('/auth/')
+  )
+
+  // If user is not authenticated and trying to access a protected route
+  if (!user && !isPublicRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }
