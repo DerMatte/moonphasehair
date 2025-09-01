@@ -12,7 +12,6 @@ export interface LocationData {
 	longitude?: number;
 }
 
-
 export const getLocationData = async () => {
 	const res = await fetch(new URL("/api/location", baseUrl), {
 		cache: "no-store",
@@ -24,9 +23,8 @@ export const getLocationData = async () => {
 	return null;
 };
 
-
 export default async function Nav() {
-    const locationData = await getLocationData();
+	const locationData = await getLocationData();
 
 	return (
 		<header className="w-full">

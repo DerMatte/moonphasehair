@@ -16,7 +16,6 @@ import {
 import { Moon, Calendar, Heart, Brain, Sparkles, Clock } from "lucide-react";
 import { Metadata } from "next";
 
-
 export const revalidate = 3600; // 1 hour
 
 export const metadata: Metadata = {

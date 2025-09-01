@@ -1,6 +1,6 @@
 export const moonPhases = [
-	 {
-        name: "New Moon",
+	{
+		name: "New Moon",
 		action: "New beginnings / Bold transformation",
 		description: "An ideal moment for a striking new look or style change",
 		icon: "🌟",

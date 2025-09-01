@@ -10,7 +10,7 @@ export const formatDateTime = (date: Date, locales: string = "en-GB") => {
 	if (!date || !(date instanceof Date)) {
 		return "Date unavailable";
 	}
-	
+
 	return date.toLocaleString(locales, {
 		hour12: false,
 		hour: "2-digit",

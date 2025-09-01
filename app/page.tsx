@@ -1,9 +1,5 @@
-import {
-	getMoonPhaseWithTiming,
-} from "@/lib/MoonPhaseCalculator";
-import {
-	formatDateTime,
-} from "@/lib/utils";
+import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
+import { formatDateTime } from "@/lib/utils";
 
 import MoonCarousel, { MoonCarouselSkeleton } from "@/components/MoonCarousel";
 import BigMoon from "@/components/BigMoon";
@@ -12,7 +8,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export const revalidate = 3600; // 1 hour (60 * 60)
-
 
 export default function MoonHairDashboard() {
 	// Get moon phase timing information
@@ -31,7 +26,8 @@ export default function MoonHairDashboard() {
 								Cut your Hair according to the phase of the moon
 							</h1>
 							<h2 className="self-stretch justify-start text-base font-normal font-mono text-balance max-w-[80dvw]">
-								Intrinsic Knowledge from my favourite X Account visualised as an interactive app.
+								Intrinsic Knowledge from my favourite X Account visualised as an
+								interactive app.
 								<br />
 								Make sure to pass the knowledge on and share it with your
 								friends.
@@ -47,9 +43,7 @@ export default function MoonHairDashboard() {
 								</div>
 								<div className="flex flex-col text-sm justify-center gap-2">
 									<p className="italic font-bold max-w-md text-balance">
-										{
-											moonPhaseData.current.description
-										}
+										{moonPhaseData.current.description}
 									</p>
 									<span>
 										Since: {formatDateTime(moonPhaseData.current.startDate)}

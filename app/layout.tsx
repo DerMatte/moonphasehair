@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
 
 import { InfoButton } from "./InfoButton";
 import LocationInfo from "../components/Nav/LocationInfo";
 import ServiceWorker from "./ServiceWorker";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Nav/Navbar";
 import PageTransition from "@/components/PageTransition";
 import Nav from "@/components/Nav";
@@ -122,9 +122,7 @@ export default function RootLayout({
 							{/* <Nav /> */}
 
 							<main className="flex-1 py-4 sm:py-6 overflow-x-hidden">
-								<PageTransition>
-									{children}
-								</PageTransition>
+								<PageTransition>{children}</PageTransition>
 							</main>
 
 							<footer className="flex flex-row items-center justify-between px-4 py-2">
