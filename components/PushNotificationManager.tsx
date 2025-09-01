@@ -21,6 +21,10 @@ import {
 	AccordionContent,
 } from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { User } from "@supabase/supabase-js";
 
 export default function PushNotificationManager() {
 	const [isSupported, setIsSupported] = useState(false);
@@ -28,13 +32,28 @@ export default function PushNotificationManager() {
 		null,
 	);
 	const [message, setMessage] = useState("");
+	const [user, setUser] = useState<User | null>(null);
+	const router = useRouter();
+	const supabase = createClient();
 
 	useEffect(() => {
+		// Check authentication status
+		supabase.auth.getUser().then(({ data: { user } }) => {
+			setUser(user);
+		});
+
+		// Listen for auth changes
+		const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
 		if ("serviceWorker" in navigator && "PushManager" in window) {
 			setIsSupported(true);
 			registerServiceWorker();
 		}
-	}, []);
+
+		return () => authSubscription.unsubscribe();
+	}, [supabase.auth]);
 
 	async function registerServiceWorker() {
 		const registration = await navigator.serviceWorker.register("/sw.js", {
@@ -46,6 +65,12 @@ export default function PushNotificationManager() {
 	}
 
 	async function subscribeToPush() {
+		if (!user) {
+			toast.error("Please sign in to enable notifications");
+			router.push("/auth/login");
+			return;
+		}
+
 		const registration = await navigator.serviceWorker.ready;
 		const sub = await registration.pushManager.subscribe({
 			userVisibleOnly: true,
@@ -60,6 +85,12 @@ export default function PushNotificationManager() {
 			new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
 			"hair",
 		);
+		
+		if (result.success) {
+			toast.success("Successfully subscribed to notifications");
+		} else {
+			toast.error(result.error || "Failed to subscribe");
+		}
 		console.log("Subscription result:", result);
 	}
 
@@ -104,7 +135,16 @@ export default function PushNotificationManager() {
 							</div>
 						</div>
 						<CardContent>
-							{subscription ? (
+							{!user ? (
+								<>
+									<p className="text-sm text-neutral-600 mb-3">
+										Sign in to enable push notifications
+									</p>
+									<Button onClick={() => router.push("/auth/login")} className="w-full">
+										Sign In
+									</Button>
+								</>
+							) : subscription ? (
 								<>
 									<p className="text-sm text-green-600">
 										✓ You are subscribed to push notifications

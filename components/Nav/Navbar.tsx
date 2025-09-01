@@ -7,11 +7,15 @@ import { cn } from "@/lib/utils";
 import logo from "@/public/moonphasehair-logo.png";
 import { motion, AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Close, Menu } from "@nsmr/pixelart-react";
 import { Label } from "../ui/label";
 import { DesktopNavbar } from "./DesktopNavbar";
 import { type LocationData } from "./index";
+import { createClient } from "@/lib/supabase/client";
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { LoginButton } from "@/components/auth/login-button";
+import type { User } from "@supabase/supabase-js";
 
 export function Navbar({
 	locationData,
@@ -19,8 +23,24 @@ export function Navbar({
 	locationData: LocationData | null;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
 	const toggleMenu = () => setIsOpen(!isOpen);
 	const pathname = usePathname();
+	const supabase = createClient();
+
+	useEffect(() => {
+		// Get initial user
+		supabase.auth.getUser().then(({ data: { user } }) => {
+			setUser(user);
+		});
+
+		// Listen for auth changes
+		const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
+		return () => subscription.unsubscribe();
+	}, [supabase.auth]);
 
 	const menuVariants = {
 		closed: {
@@ -63,10 +83,10 @@ export function Navbar({
 					/>
 				</Link>
 
-				{/* Mobile Right Side - Location Icon + Menu Button */}
-				<div className="flex items-center space-x-3 h-12">
-					{/* Location Icon on Mobile */}
-					{/* <Pin size={32} /> */}
+				{/* Mobile Right Side - Auth + Menu Button */}
+				<div className="flex items-center space-x-2 h-12">
+					{/* Auth Button */}
+					{user ? <UserDropdown user={user} /> : <LoginButton />}
 
 					{/* Hamburger Menu Button */}
 					<motion.button

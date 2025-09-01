@@ -1,7 +1,7 @@
 "use server";
 
 import webpush from "web-push";
-import { kv } from "@vercel/kv";
+import { createClient } from "@/lib/supabase/server";
 
 if (
 	!process.env.VAPID_EMAIL ||
@@ -24,18 +24,32 @@ export async function subscribeUser(
 	subscriptionType: "hair" | "fasting" = "hair",
 ) {
 	try {
-		// Store in KV with endpoint and type as key for uniqueness
-		const key = `${subscriptionData.endpoint}:${subscriptionType}`;
-		await kv.set(
-			key,
-			JSON.stringify({
-				subscription: subscriptionData,
-				targetPhase,
-				nextDate,
-				subscriptionType,
-				createdAt: new Date().toISOString(),
-			}),
-		);
+		const supabase = await createClient();
+		
+		// Check if user is authenticated
+		const { data: { user }, error: authError } = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
+		}
+
+		// Store in Supabase
+		const { error } = await supabase
+			.from('subscriptions')
+			.upsert({
+				user_id: user.id,
+				endpoint: subscriptionData.endpoint,
+				subscription_type: subscriptionType,
+				subscription_data: subscriptionData,
+				target_phase: targetPhase,
+				next_date: nextDate,
+			}, {
+				onConflict: 'user_id,endpoint,subscription_type'
+			});
+
+		if (error) {
+			console.error("Error storing subscription:", error);
+			return { success: false, error: "Failed to store subscription" };
+		}
 
 		return { success: true };
 	} catch (error) {
@@ -49,8 +63,26 @@ export async function unsubscribeUser(
 	subscriptionType: "hair" | "fasting" = "hair",
 ) {
 	try {
-		const key = `${endpoint}:${subscriptionType}`;
-		await kv.del(key);
+		const supabase = await createClient();
+		
+		// Check if user is authenticated
+		const { data: { user }, error: authError } = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
+		}
+
+		const { error } = await supabase
+			.from('subscriptions')
+			.delete()
+			.eq('user_id', user.id)
+			.eq('endpoint', endpoint)
+			.eq('subscription_type', subscriptionType);
+
+		if (error) {
+			console.error("Error removing subscription:", error);
+			return { success: false, error: "Failed to remove subscription" };
+		}
+
 		return { success: true };
 	} catch (error) {
 		console.error("Error removing subscription:", error);
