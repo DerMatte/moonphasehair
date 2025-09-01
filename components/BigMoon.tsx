@@ -51,7 +51,6 @@ export default function BigMoon({ phase }: { phase: number }) {
 						alt="Moon surface texture"
 						fill
 						priority
-						sizes="(max-width: 640px) 400px, (max-width: 768px) 500px, (max-width: 1024px) 600px, 700px"
 						className="object-cover brightness-[1.3] contrast-[1.2]"
 					/>
 					{/* Simplified dark overlay for the moon phase */}

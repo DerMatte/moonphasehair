@@ -44,53 +44,21 @@ export default function InstallPrompt() {
     }
   }, [])
 
-  const handleInstallClick = async () => {
-    if (!promptInstall) {
-      return
+    const handleInstallClick = async () => {
+      if (!promptInstall) {
+        return
+      }
+      const result = await promptInstall.prompt()
+      toast.success('App installed successfully')
+      setPromptInstall(null)
     }
-    const result = await promptInstall.prompt()
-    toast.success('App installed successfully')
-    setPromptInstall(null)
-  }
 
   if (isStandalone) {
     return null // Don't show install prompt if already installed
   }
 
-  return (
-    <div className="space-y-4 relative">
-      {isIOS && !isIOSPromptClosed && (
-        <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg relative ">
-          <div className="absolute top-2 right-2">
-            <Button onClick={handleCloseIOSPrompt} size="sm" className=" text-white hover:bg-sky-600">
-              X
-            </Button>
-          </div>
-          <p className="text-sm text-sky-800 text-balance">
-            To install this app on your iOS device, tap the share button{' '}
-            <span role="img" aria-label="share icon">
-              ⎋
-            </span>{' '}
-            and then "Add to Home Screen"{' '}
-            <span role="img" aria-label="plus icon">
-              ➕
-            </span>
-            .
-          </p>
-          
-        </div>
-      )}
-
-      {promptInstall && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded">
-          <p className="text-sm text-green-800 mb-2">
-            Install Moonphase Hair app for the best experience!
-          </p>
-          <Button onClick={handleInstallClick} size="sm" className="bg-blue-500 text-white hover:bg-blue-600">
-            Install App
-          </Button>
-        </div>
-      )}
-    </div>
-  )
+  if (isIOS && !isIOSPromptClosed) {
+    toast.info("To install this app on your iOS device, tap the share button and add it to your Home Screen")
+  }
+  return null
 }

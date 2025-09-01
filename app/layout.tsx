@@ -4,12 +4,14 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next"
 
 import { InfoButton } from "./InfoButton";
-import LocationInfo from "./LocationInfo";
+import LocationInfo from "../components/Nav/LocationInfo";
 import ServiceWorker from "./ServiceWorker";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner"
-import { Navbar } from "@/components/Navbar";
+import { Navbar } from "@/components/Nav/Navbar";
+import PageTransition from "@/components/PageTransition";
+import Nav from "@/components/Nav";
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://www.moonphasehair.com"),
@@ -80,7 +82,6 @@ export default function RootLayout({
 		<html lang="en">
 			<head>
 				<link rel="manifest" href="/manifest.json" />
-				<link rel="preload" href="/moon-pattern.png" as="image" />
 			</head>
 			<body
 				className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased text-black bg-neutral-100 font-mono`}
@@ -89,9 +90,9 @@ export default function RootLayout({
 				<div className="fixed top-4 right-4 z-50 max-w-sm">
 					<InstallPrompt />
 				</div>
-				<div className="fixed bottom-4 right-4 z-50 max-w-sm">
+				{/* <div className="fixed bottom-4 right-4 z-50 max-w-sm">
 					<PushNotificationManager />
-				</div>
+				</div> */}
 				{/* Border Container */}
 				<div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-16">
 					<div className="relative w-full h-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-8rem)]">
@@ -109,7 +110,7 @@ export default function RootLayout({
 								backgroundPosition: "center",
 							}}
 						/>
-
+						<Nav />
 						{/* Content Container - positioned within border */}
 						<div
 							className="relative h-full flex flex-col"
@@ -118,13 +119,12 @@ export default function RootLayout({
 									"clamp(1rem, 4vh, 2rem) clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 6vh, 3rem) clamp(1.5rem, 4vw, 3rem)",
 							}}
 						>
-							<header className="flex flex-row items-center justify-between px-4 py-4 sm:py-6">
-								<Navbar />
-								<LocationInfo />
-							</header>
+							{/* <Nav /> */}
 
 							<main className="flex-1 py-4 sm:py-6 overflow-x-hidden">
-								{children}
+								<PageTransition>
+									{children}
+								</PageTransition>
 							</main>
 
 							<footer className="flex flex-row items-center justify-between px-4 py-2">

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         // Silently fail and fall back to UTC
       }
     }
-    
+
     return Response.json({ 
       city: city || 'Unknown',
       country: country || 'Unknown', 
