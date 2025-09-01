@@ -1,6 +1,7 @@
 import LocationInfo from "./LocationInfo";
-import { Navbar } from "./Navbar";
+import { NavbarWrapper } from "./NavbarWrapper";
 import { baseUrl } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
 
 export interface LocationData {
 	city: string;
@@ -25,12 +26,14 @@ export const getLocationData = async () => {
 
 export default async function Nav() {
 	const locationData = await getLocationData();
+	const supabase = await createClient();
+	const { data: { user } } = await supabase.auth.getUser();
 
 	return (
 		<header className="w-full">
 			<div className="flex flex-row items-center justify-between px-6 sm:px-8 py-4 sm:py-8 border-b border-neutral-200">
 				{/* Pass location icon to navbar for mobile layout */}
-				<Navbar locationData={locationData || null} />
+				<NavbarWrapper locationData={locationData || null} initialUser={user} />
 				{/* LocationInfo for desktop layout */}
 				<LocationInfo locationData={locationData || null} />
 			</div>

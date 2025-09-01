@@ -69,7 +69,7 @@ export function Navbar({
 	return (
 		<nav className="w-full font-medium pt-2">
 			{/* Desktop Layout */}
-			<DesktopNavbar pathname={pathname} />
+			<DesktopNavbar pathname={pathname} user={user} />
 
 			{/* Mobile Layout */}
 			<div className="md:hidden flex items-center justify-between w-full h-12">

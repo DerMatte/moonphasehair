@@ -3,14 +3,11 @@ import { buttonVariants } from "../ui/button";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import logo from "@/public/moonphasehair-logo.png";
-import { createClient } from "@/lib/supabase/server";
 import { UserDropdown } from "@/components/auth/user-dropdown";
 import { LoginButton } from "@/components/auth/login-button";
+import type { User } from "@supabase/supabase-js";
 
-export async function DesktopNavbar({ pathname }: { pathname: string }) {
-	const supabase = await createClient();
-	const { data: { user } } = await supabase.auth.getUser();
-
+export function DesktopNavbar({ pathname, user }: { pathname: string; user: User | null }) {
 	return (
 		<div className="hidden md:flex items-center justify-between w-full h-12">
 			<div className="flex items-center gap-2">
