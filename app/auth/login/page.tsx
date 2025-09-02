@@ -5,14 +5,17 @@ import { LoginForm } from '@/components/auth/login-form'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { redirect?: string }
+  searchParams: Promise<{ redirect?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
+  // Await searchParams as required in Next.js 15
+  const params = await searchParams
+  
   if (user) {
-    redirect(searchParams.redirect || '/')
+    redirect(params.redirect || '/')
   }
 
-  return <LoginForm redirectTo={searchParams.redirect} />
+  return <LoginForm redirectTo={params.redirect} />
 }

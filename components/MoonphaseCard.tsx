@@ -30,6 +30,23 @@ export default function MoonPhaseCard({
 	action?: string;
 }) {
 	const [subscribed, setSubscribed] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
+	const router = useRouter();
+	const supabase = createClient();
+
+	useEffect(() => {
+		// Check authentication status
+		supabase.auth.getUser().then(({ data: { user } }) => {
+			setUser(user);
+		});
+
+		// Listen for auth changes
+		const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
+		return () => subscription.unsubscribe();
+	}, [supabase.auth]);
 
 	// Calculate the next occurrence of this phase and time until it
 	const { nextOccurrenceDate, timeUntilPhase, isCurrentPhase } = useMemo(() => {
