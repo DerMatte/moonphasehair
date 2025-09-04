@@ -129,7 +129,7 @@ export default function MoonCarousel({
 			{/* Mobile vertical list */}
 			<div className="md:hidden space-y-4">
 				{/* Previous Phase */}
-				<MoonPhaseCard
+				<MoonPhaseCardServer
 					title="Previous"
 					phase={moonPhaseData.previous.name}
 					phaseValue={moonPhaseData.previous.phaseValue}
@@ -142,7 +142,7 @@ export default function MoonCarousel({
 
 				{/* Current Phase - Highlighted */}
 				<div className="ring-2 ring-yellow-500 rounded-lg">
-					<MoonPhaseCard
+					<MoonPhaseCardServer
 						title="Current"
 						phase={moonPhaseData.current.name}
 						phaseValue={moonPhaseData.current.phaseValue}
@@ -155,7 +155,7 @@ export default function MoonCarousel({
 				</div>
 
 				{/* Next Phase */}
-				<MoonPhaseCard
+				<MoonPhaseCardServer
 					title="Next"
 					phase={moonPhaseData.next.name}
 					phaseValue={moonPhaseData.next.phaseValue}
@@ -168,7 +168,7 @@ export default function MoonCarousel({
 
 				{/* Upcoming Phases */}
 				{moonPhaseData.upcoming.slice(0, 1).map((upcoming) => (
-					<MoonPhaseCard
+					<MoonPhaseCardServer
 						key={`mobile-upcoming-${upcoming.name}-${upcoming.date.getTime()}`}
 						title="Upcoming"
 						phase={upcoming.name}
