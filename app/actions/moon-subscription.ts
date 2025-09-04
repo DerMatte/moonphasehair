@@ -65,6 +65,41 @@ export async function subscribeMoonPhase(
 	}
 }
 
+export async function unsubscribeMoonPhase(
+	phase: string
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		const supabase = await createClient();
+		
+		// Check if user is authenticated
+		const { data: { user }, error: authError } = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
+		}
+
+		// Delete the subscription
+		const { error } = await supabase
+			.from('subscriptions')
+			.delete()
+			.eq('user_id', user.id)
+			.eq('target_phase', phase)
+			.eq('subscription_type', 'moon_phase');
+
+		if (error) {
+			console.error('Error removing subscription:', error);
+			return { success: false, error: 'Failed to remove subscription' };
+		}
+
+		// Revalidate the page to show updated state
+		revalidatePath('/');
+		
+		return { success: true };
+	} catch (error) {
+		console.error('Error in unsubscribeMoonPhase:', error);
+		return { success: false, error: 'An unexpected error occurred' };
+	}
+}
+
 export async function getSubscriptionStatus(phase: string): Promise<boolean> {
 	try {
 		const supabase = await createClient();
@@ -85,5 +120,30 @@ export async function getSubscriptionStatus(phase: string): Promise<boolean> {
 		return !!data;
 	} catch (error) {
 		return false;
+	}
+}
+
+export async function getAllUserSubscriptions(): Promise<string[]> {
+	try {
+		const supabase = await createClient();
+		
+		const { data: { user } } = await supabase.auth.getUser();
+		if (!user) return [];
+
+		const { data, error } = await supabase
+			.from('subscriptions')
+			.select('target_phase')
+			.eq('user_id', user.id)
+			.eq('subscription_type', 'moon_phase');
+
+		if (error) {
+			console.error('Error fetching subscriptions:', error);
+			return [];
+		}
+
+		return data?.map(sub => sub.target_phase) || [];
+	} catch (error) {
+		console.error('Error in getAllUserSubscriptions:', error);
+		return [];
 	}
 }

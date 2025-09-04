@@ -5,9 +5,14 @@ ADD COLUMN user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
 -- Create index for user_id for better query performance
 CREATE INDEX idx_subscriptions_user_id ON public.subscriptions(user_id);
 
--- Create unique constraint for user_id, endpoint, and subscription_type
+-- Remove the previous constraint if it exists
 ALTER TABLE public.subscriptions
-ADD CONSTRAINT unique_user_endpoint_type UNIQUE (user_id, endpoint, subscription_type);
+DROP CONSTRAINT IF EXISTS unique_user_endpoint_type;
+
+-- Create unique constraint for user_id, endpoint, target_phase, and subscription_type
+-- This allows a user to subscribe to multiple moon phases with the same endpoint
+ALTER TABLE public.subscriptions
+ADD CONSTRAINT unique_user_endpoint_phase_type UNIQUE (user_id, endpoint, target_phase, subscription_type);
 
 -- Add user_id to fasting_states if not already present
 ALTER TABLE public.fasting_states

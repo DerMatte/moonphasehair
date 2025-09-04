@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition, useEffect, useState } from "react";
 import {
 	subscribeMoonPhase,
+	unsubscribeMoonPhase,
 	type SubscriptionState,
 } from "@/app/actions/moon-subscription";
 import { toast } from "sonner";
@@ -49,7 +50,7 @@ export function MoonPhaseCardClient({
 		return () => subscription.unsubscribe();
 	}, [supabase.auth]);
 
-	const handleSubscribe = async () => {
+	const handleToggleSubscription = async () => {
 		// Check if user is authenticated
 		if (!user) {
 			toast.error("Please sign in to enable notifications");
@@ -59,30 +60,65 @@ export function MoonPhaseCardClient({
 			return;
 		}
 
+		// If already subscribed, unsubscribe
+		if (optimisticSubscribed) {
+			startTransition(async () => {
+				// Optimistically update the UI
+				setOptimisticSubscribed(false);
+
+				// Call server action to unsubscribe
+				const result = await unsubscribeMoonPhase(phase);
+
+				if (result.success) {
+					toast.success(`Unsubscribed from ${phase} notifications`);
+				} else {
+					// Revert optimistic update on error
+					setOptimisticSubscribed(true);
+					toast.error(result.error || "Failed to unsubscribe");
+				}
+			});
+			return;
+		}
+
+		// Subscribe logic
 		if (!("PushManager" in window)) {
 			toast.error("Push notifications not supported");
 			return;
 		}
 
 		try {
-			const permission = await Notification.requestPermission();
+			// Check if we already have permission
+			let permission = Notification.permission;
+			
+			// Only request permission if not already granted
+			if (permission === "default") {
+				permission = await Notification.requestPermission();
+			}
+			
 			if (permission !== "granted") {
 				toast.error("Notification permission denied");
 				return;
 			}
 
 			const registration = await navigator.serviceWorker.ready;
-			const subscription = await registration.pushManager.subscribe({
-				userVisibleOnly: true,
-				applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-			});
+			
+			// Check if already has a push subscription
+			let subscription = await registration.pushManager.getSubscription();
+			
+			// Create a new subscription if none exists
+			if (!subscription) {
+				subscription = await registration.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+				});
+			}
 
 			startTransition(async () => {
 				// Optimistically update the UI
 				setOptimisticSubscribed(true);
 
 				// Call server action
-				const result = await subscribeMoonPhase(phase, subscription.toJSON());
+				const result = await subscribeMoonPhase(phase, subscription!.toJSON());
 
 				if (result.success) {
 					toast.success(`Subscribed to ${phase} notifications!`);
@@ -111,15 +147,19 @@ export function MoonPhaseCardClient({
 
 	return (
 		<button
-			onClick={handleSubscribe}
-			disabled={optimisticSubscribed || isPending}
-			className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance"
+			onClick={handleToggleSubscription}
+			disabled={isPending}
+			className={`${
+				optimisticSubscribed 
+					? "bg-green-200 hover:bg-red-200" 
+					: "bg-sky-200 hover:bg-sky-300"
+			} disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance`}
 			type="button"
 		>
-			{optimisticSubscribed
-				? "Subscribed!"
-				: isPending
-					? "Subscribing..."
+			{isPending
+				? optimisticSubscribed ? "Unsubscribing..." : "Subscribing..."
+				: optimisticSubscribed
+					? "✓ Subscribed (click to unsubscribe)"
 					: user
 						? `Remind me ${timeUntilPhase}`
 						: "Sign in to subscribe"}
