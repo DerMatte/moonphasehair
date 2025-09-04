@@ -299,9 +299,8 @@ export default function FastingClient({
 				// Subscribe to fasting reminders
 				await subscribeFasting(
 					sub.toJSON(),
-					"Full Moon Fasting",
+					"Full Moon",
 					nextFullMoon || new Date().toISOString(),
-					isActive: fastingState.isActive,
 				);
 				toast.success("Notifications enabled");
 			}
