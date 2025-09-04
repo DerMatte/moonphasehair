@@ -1,13 +1,16 @@
 "use client";
 
 import MoonIcon from "@/components/MoonIcon";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
 	getNextMoonPhaseOccurrence,
 	getTimeUntilDate,
 	getMoonPhaseWithTiming,
 } from "@/lib/MoonPhaseCalculator";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 // Moon phase card component
 export default function MoonPhaseCard({
