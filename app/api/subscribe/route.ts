@@ -27,18 +27,24 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
-	// Store in Supabase
+	// First, check if subscription exists and delete it
+	await supabase
+		.from('subscriptions')
+		.delete()
+		.eq('user_id', user.id)
+		.eq('endpoint', subscription.endpoint)
+		.eq('target_phase', targetPhase);
+
+	// Then insert the new subscription
 	const { error } = await supabase
 		.from('subscriptions')
-		.upsert({
+		.insert({
 			user_id: user.id,
 			endpoint: subscription.endpoint,
 			subscription_type: 'moon_phase',
 			subscription_data: subscription,
 			target_phase: targetPhase,
 			next_date: nextDate,
-		}, {
-			onConflict: 'user_id,endpoint'
 		});
 
 	if (error) {

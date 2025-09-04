@@ -32,18 +32,24 @@ export async function subscribeUser(
 			return { success: false, error: "Authentication required" };
 		}
 
-		// Store in Supabase
+		// First, check if subscription exists and delete it
+		await supabase
+			.from('subscriptions')
+			.delete()
+			.eq('user_id', user.id)
+			.eq('endpoint', subscriptionData.endpoint)
+			.eq('subscription_type', subscriptionType);
+
+		// Then insert the new subscription
 		const { error } = await supabase
 			.from('subscriptions')
-			.upsert({
+			.insert({
 				user_id: user.id,
 				endpoint: subscriptionData.endpoint,
 				subscription_type: subscriptionType,
 				subscription_data: subscriptionData,
 				target_phase: targetPhase,
 				next_date: nextDate,
-			}, {
-				onConflict: 'user_id,endpoint,subscription_type'
 			});
 
 		if (error) {
