@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { Close, Menu } from "@nsmr/pixelart-react";
 import { Label } from "../ui/label";
 import { DesktopNavbar } from "./DesktopNavbar";
-import { type LocationData } from "./index";
+import type { LocationData } from "./index";
 import { createClient } from "@/lib/supabase/client";
 import { UserDropdown } from "@/components/auth/user-dropdown";
 import { LoginButton } from "@/components/auth/login-button";
@@ -139,6 +139,23 @@ export function Navbar({
 								>
 									Full Moon Fasting
 								</Link>
+							</motion.div>
+							{user && (
+								<motion.div variants={linkVariants} transition={{ delay: 0.2 }}>
+									<Link
+										href="/profile"
+										onClick={() => setIsOpen(false)}
+										className={cn(
+											buttonVariants({ variant: "ghost" }),
+											"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium w-full flex justify-start items-center",
+											pathname === "/profile" && "bg-neutral-200",
+										)}
+									>
+										Profile
+									</Link>
+								</motion.div>
+							)}
+							<motion.div variants={linkVariants} transition={{ delay: user ? 0.3 : 0.2 }}>
 								<Label className="flex items-center justify-start text-xs text-center px-3 pt-4 rounded bg-transparent text-neutral-600 ">
 									<span className="font-medium">Location:</span>
 									{locationData?.city}, {locationData?.country}

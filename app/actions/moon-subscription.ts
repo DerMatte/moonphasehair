@@ -4,16 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getNextMoonPhaseOccurrence } from "@/lib/MoonPhaseCalculator";
 import { revalidatePath } from "next/cache";
 
-export type SubscriptionState = {
-	phase: string;
-	subscribed: boolean;
-	loading?: boolean;
-};
+export interface SubscriptionState {
+	success: boolean;
+	error?: string;
+}
 
 export async function subscribeMoonPhase(
 	phase: string,
-	subscription: any,
-): Promise<{ success: boolean; error?: string }> {
+	subscriptionData: PushSubscriptionJSON,
+): Promise<SubscriptionState> {
 	try {
 		const supabase = await createClient();
 
@@ -26,77 +25,92 @@ export async function subscribeMoonPhase(
 			return { success: false, error: "Authentication required" };
 		}
 
-		// Calculate next occurrence date
-		const nextDate = getNextMoonPhaseOccurrence(phase, new Date());
-		const nextDateString =
-			nextDate?.toISOString() ||
-			new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+		// Validate required fields
+		if (!subscriptionData?.endpoint || !phase) {
+			return {
+				success: false,
+				error: "Missing required fields: subscription endpoint or phase",
+			};
+		}
 
-		// First, check if subscription exists and delete it
+		// Calculate next occurrence of this phase
+		const nextDate = getNextMoonPhaseOccurrence(phase);
+		if (!nextDate) {
+			return {
+				success: false,
+				error: "Unable to calculate next occurrence for this phase",
+			};
+		}
+
+		// First, check if subscription exists and delete it (upsert behavior)
 		await supabase
 			.from("subscriptions")
 			.delete()
 			.eq("user_id", user.id)
-			.eq("endpoint", subscription.endpoint)
-			.eq("target_phase", phase);
+			.eq("endpoint", subscriptionData.endpoint)
+			.eq("target_phase", phase)
+			.eq("subscription_type", "hair");
 
 		// Then insert the new subscription
 		const { error } = await supabase.from("subscriptions").insert({
 			user_id: user.id,
-			endpoint: subscription.endpoint,
-			subscription_type: "moon_phase",
-			subscription_data: subscription,
+			endpoint: subscriptionData.endpoint,
+			subscription_type: "hair",
+			subscription_data: subscriptionData,
 			target_phase: phase,
-			next_date: nextDateString,
+			next_date: nextDate.toISOString(),
 		});
 
 		if (error) {
-			console.error("Error saving subscription:", error);
-			return { success: false, error: "Failed to save subscription" };
+			console.error("Error storing moon phase subscription:", error);
+			return { success: false, error: "Failed to store subscription" };
 		}
 
-		// Revalidate the page to show updated state
+		// Revalidate the path to update the UI
 		revalidatePath("/");
 
 		return { success: true };
 	} catch (error) {
-		console.error("Error in subscribeMoonPhase:", error);
-		return { success: false, error: "An unexpected error occurred" };
+		console.error("Error storing moon phase subscription:", error);
+		return { success: false, error: "Failed to store subscription" };
 	}
 }
 
 export async function unsubscribeMoonPhase(
-	phase: string
-): Promise<{ success: boolean; error?: string }> {
+	phase: string,
+): Promise<SubscriptionState> {
 	try {
 		const supabase = await createClient();
-		
+
 		// Check if user is authenticated
-		const { data: { user }, error: authError } = await supabase.auth.getUser();
+		const {
+			data: { user },
+			error: authError,
+		} = await supabase.auth.getUser();
 		if (authError || !user) {
 			return { success: false, error: "Authentication required" };
 		}
 
-		// Delete the subscription
+		// Delete the subscription for this user and phase
 		const { error } = await supabase
-			.from('subscriptions')
+			.from("subscriptions")
 			.delete()
-			.eq('user_id', user.id)
-			.eq('target_phase', phase)
-			.eq('subscription_type', 'moon_phase');
+			.eq("user_id", user.id)
+			.eq("target_phase", phase)
+			.eq("subscription_type", "hair");
 
 		if (error) {
-			console.error('Error removing subscription:', error);
-			return { success: false, error: 'Failed to remove subscription' };
+			console.error("Error removing moon phase subscription:", error);
+			return { success: false, error: "Failed to remove subscription" };
 		}
 
-		// Revalidate the page to show updated state
-		revalidatePath('/');
-		
+		// Revalidate the path to update the UI
+		revalidatePath("/");
+
 		return { success: true };
 	} catch (error) {
-		console.error('Error in unsubscribeMoonPhase:', error);
-		return { success: false, error: 'An unexpected error occurred' };
+		console.error("Error removing moon phase subscription:", error);
+		return { success: false, error: "Failed to remove subscription" };
 	}
 }
 
@@ -104,46 +118,74 @@ export async function getSubscriptionStatus(phase: string): Promise<boolean> {
 	try {
 		const supabase = await createClient();
 
+		// Check if user is authenticated
 		const {
 			data: { user },
+			error: authError,
 		} = await supabase.auth.getUser();
-		if (!user) return false;
+		if (authError || !user) {
+			return false;
+		}
 
-		const { data } = await supabase
+		// Check if user has an active subscription for this phase
+		const { data, error } = await supabase
 			.from("subscriptions")
 			.select("id")
 			.eq("user_id", user.id)
 			.eq("target_phase", phase)
-			.eq("subscription_type", "moon_phase")
+			.eq("subscription_type", "hair")
 			.single();
+
+		if (error && error.code !== "PGRST116") {
+			// PGRST116 is "not found" error, which is expected when no subscription exists
+			console.error("Error checking subscription status:", error);
+			return false;
+		}
 
 		return !!data;
 	} catch (error) {
+		console.error("Error checking subscription status:", error);
 		return false;
 	}
 }
 
-export async function getAllUserSubscriptions(): Promise<string[]> {
+export async function getAllUserSubscriptions(): Promise<{
+	success: boolean;
+	data?: Array<{
+		id: string;
+		target_phase: string;
+		next_date: string;
+		subscription_type: string;
+	}>;
+	error?: string;
+}> {
 	try {
 		const supabase = await createClient();
-		
-		const { data: { user } } = await supabase.auth.getUser();
-		if (!user) return [];
 
-		const { data, error } = await supabase
-			.from('subscriptions')
-			.select('target_phase')
-			.eq('user_id', user.id)
-			.eq('subscription_type', 'moon_phase');
-
-		if (error) {
-			console.error('Error fetching subscriptions:', error);
-			return [];
+		// Check if user is authenticated
+		const {
+			data: { user },
+			error: authError,
+		} = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
 		}
 
-		return data?.map(sub => sub.target_phase) || [];
+		// Get all subscriptions for this user
+		const { data, error } = await supabase
+			.from("subscriptions")
+			.select("id, target_phase, next_date, subscription_type")
+			.eq("user_id", user.id)
+			.eq("subscription_type", "hair");
+
+		if (error) {
+			console.error("Error fetching user subscriptions:", error);
+			return { success: false, error: "Failed to fetch subscriptions" };
+		}
+
+		return { success: true, data: data || [] };
 	} catch (error) {
-		console.error('Error in getAllUserSubscriptions:', error);
-		return [];
+		console.error("Error fetching user subscriptions:", error);
+		return { success: false, error: "Failed to fetch subscriptions" };
 	}
 }

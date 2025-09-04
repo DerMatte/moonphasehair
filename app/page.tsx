@@ -3,9 +3,6 @@ import { formatDateTime } from "@/lib/utils";
 
 import MoonCarousel from "@/components/MoonCarousel";
 import BigMoon from "@/components/BigMoon";
-import UserSubscriptions from "@/components/UserSubscriptions";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export const revalidate = 3600; // 1 hour (60 * 60)
 
@@ -57,9 +54,6 @@ export default function MoonHairDashboard() {
 					</div>
 				</div>
 
-				{/* User's current subscriptions */}
-				<UserSubscriptions />
-				
 				{/* Horizontal scrollable moon phases section */}
 				<MoonCarousel moonPhaseData={moonPhaseData} />
 			</div>

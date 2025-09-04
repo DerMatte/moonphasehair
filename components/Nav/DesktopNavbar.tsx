@@ -49,11 +49,23 @@ export function DesktopNavbar({
 					>
 						Full Moon Fasting
 					</Link>
+					{user && (
+						<Link
+							href="/profile"
+							className={cn(
+								buttonVariants({ variant: "ghost" }),
+								"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium",
+								pathname === "/profile" && "bg-neutral-200",
+							)}
+						>
+							Profile
+						</Link>
+					)}
 				</div>
 			</div>
 
 			{/* Auth Section */}
-			<div className="flex items-center">
+			<div className="">
 				{user ? <UserDropdown user={user} /> : <LoginButton />}
 			</div>
 		</div>

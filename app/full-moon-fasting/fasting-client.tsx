@@ -301,7 +301,6 @@ export default function FastingClient({
 					sub.toJSON(),
 					"Full Moon Fasting",
 					nextFullMoon || new Date().toISOString(),
-					isActive: fastingState.isActive,
 				);
 				toast.success("Notifications enabled");
 			}

@@ -11,10 +11,10 @@ export function LoginButton() {
 		<Button
 			variant="ghost"
 			size="icon"
-			className="rounded-full"
+			className="m-0 p-0"
 			onClick={() => router.push("/auth/login")}
 		>
-			<User className="h-5 w-5" />
+			<User className="size-8" />
 			<span className="sr-only">Sign in</span>
 		</Button>
 	);

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 	const { error } = await supabase.from("subscriptions").insert({
 		user_id: user.id,
 		endpoint: subscription.endpoint,
-		subscription_type: "moon_phase",
+		subscription_type: "hair",
 		subscription_data: subscription,
 		target_phase: targetPhase,
 		next_date: nextDate,

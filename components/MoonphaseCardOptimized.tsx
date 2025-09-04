@@ -4,7 +4,6 @@ import { useOptimistic, useTransition, useEffect, useState } from "react";
 import {
 	subscribeMoonPhase,
 	unsubscribeMoonPhase,
-	type SubscriptionState,
 } from "@/app/actions/moon-subscription";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -31,7 +30,7 @@ export function MoonPhaseCardClient({
 
 	const [optimisticSubscribed, setOptimisticSubscribed] = useOptimistic(
 		initialSubscribed,
-		(state, newState: boolean) => newState,
+		(_state, newState: boolean) => newState,
 	);
 
 	useEffect(() => {
@@ -118,7 +117,7 @@ export function MoonPhaseCardClient({
 				setOptimisticSubscribed(true);
 
 				// Call server action
-				const result = await subscribeMoonPhase(phase, subscription!.toJSON());
+				const result = await subscribeMoonPhase(phase, subscription.toJSON());
 
 				if (result.success) {
 					toast.success(`Subscribed to ${phase} notifications!`);
