@@ -7,7 +7,13 @@ import { UserDropdown } from "@/components/auth/user-dropdown";
 import { LoginButton } from "@/components/auth/login-button";
 import type { User } from "@supabase/supabase-js";
 
-export function DesktopNavbar({ pathname, user }: { pathname: string; user: User | null }) {
+export function DesktopNavbar({
+	pathname,
+	user,
+}: {
+	pathname: string;
+	user: User | null;
+}) {
 	return (
 		<div className="hidden md:flex items-center justify-between w-full h-12">
 			<div className="flex items-center gap-2">

@@ -27,7 +27,9 @@ export const getLocationData = async () => {
 export default async function Nav() {
 	const locationData = await getLocationData();
 	const supabase = await createClient();
-	const { data: { user } } = await supabase.auth.getUser();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
 	return (
 		<header className="w-full">

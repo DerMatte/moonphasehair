@@ -5,14 +5,16 @@
 		"clientKind": "git",
 		"useIgnoreFile": false
 	},
-	"files": { "ignoreUnknown": false, "includes": [
-		"**",
-		"!**/dist",
-		"!**/node_modules",
-		"!**/.next",
-		"!**/public",
-		"!**/build",
-		"!**/*.gen.ts"
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/node_modules",
+			"!**/.next",
+			"!**/public",
+			"!**/build",
+			"!**/*.gen.ts"
 		]
 	},
 	"formatter": {

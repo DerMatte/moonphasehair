@@ -17,13 +17,16 @@ export async function GET(request: NextRequest) {
 
 	// Get all subscriptions that are due for checking
 	const { data: subscriptions, error } = await supabase
-		.from('subscriptions')
-		.select('*')
-		.lte('next_date', today.toISOString());
+		.from("subscriptions")
+		.select("*")
+		.lte("next_date", today.toISOString());
 
 	if (error) {
-		console.error('Error fetching subscriptions:', error);
-		return NextResponse.json({ error: 'Failed to fetch subscriptions' }, { status: 500 });
+		console.error("Error fetching subscriptions:", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch subscriptions" },
+			{ status: 500 },
+		);
 	}
 
 	for (const subscription of subscriptions || []) {
@@ -66,12 +69,12 @@ export async function GET(request: NextRequest) {
 				if (nextOccurrence) {
 					// Update the subscription with the new date
 					const { error: updateError } = await supabase
-						.from('subscriptions')
+						.from("subscriptions")
 						.update({ next_date: nextOccurrence.toISOString() })
-						.eq('id', subscription.id);
+						.eq("id", subscription.id);
 
 					if (updateError) {
-						console.error('Error updating subscription:', updateError);
+						console.error("Error updating subscription:", updateError);
 					}
 				}
 			} else {
@@ -83,17 +86,20 @@ export async function GET(request: NextRequest) {
 				if (nextOccurrence) {
 					// Update the subscription with the new date
 					const { error: updateError } = await supabase
-						.from('subscriptions')
+						.from("subscriptions")
 						.update({ next_date: nextOccurrence.toISOString() })
-						.eq('id', subscription.id);
+						.eq("id", subscription.id);
 
 					if (updateError) {
-						console.error('Error updating subscription:', updateError);
+						console.error("Error updating subscription:", updateError);
 					}
 				}
 			}
 		}
 	}
 
-	return NextResponse.json({ status: "checked", count: subscriptions?.length || 0 });
+	return NextResponse.json({
+		status: "checked",
+		count: subscriptions?.length || 0,
+	});
 }

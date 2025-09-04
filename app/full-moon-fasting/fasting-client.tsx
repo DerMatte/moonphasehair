@@ -78,7 +78,9 @@ export default function FastingClient({
 		});
 
 		// Listen for auth changes
-		const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+		const {
+			data: { subscription: authSubscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
 			setUser(session?.user ?? null);
 		});
 
@@ -272,7 +274,9 @@ export default function FastingClient({
 		// Check if user is authenticated
 		if (!user) {
 			toast.error("Please sign in to enable notifications");
-			router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+			router.push(
+				`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+			);
 			return;
 		}
 

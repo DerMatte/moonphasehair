@@ -35,7 +35,9 @@ export function Navbar({
 		});
 
 		// Listen for auth changes
-		const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
 			setUser(session?.user ?? null);
 		});
 

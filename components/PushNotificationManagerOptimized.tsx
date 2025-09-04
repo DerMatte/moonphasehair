@@ -35,7 +35,7 @@ export default function PushNotificationManagerOptimized() {
 
 	const [optimisticSubscribed, setOptimisticSubscribed] = useOptimistic(
 		!!subscription,
-		(state, newState: boolean) => newState
+		(state, newState: boolean) => newState,
 	);
 
 	useEffect(() => {
@@ -45,7 +45,9 @@ export default function PushNotificationManagerOptimized() {
 		});
 
 		// Listen for auth changes
-		const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+		const {
+			data: { subscription: authSubscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
 			setUser(session?.user ?? null);
 		});
 
@@ -84,10 +86,10 @@ export default function PushNotificationManagerOptimized() {
 			startTransition(async () => {
 				// Optimistically update the UI
 				setOptimisticSubscribed(true);
-				
+
 				// Use server action for subscription
 				const result = await subscribeMoonPhase("New Moon", sub.toJSON());
-				
+
 				if (result.success) {
 					toast.success("Successfully subscribed to notifications");
 				} else {
@@ -149,7 +151,10 @@ export default function PushNotificationManagerOptimized() {
 									<p className="text-sm text-neutral-600 mb-3">
 										Sign in to enable push notifications
 									</p>
-									<Button onClick={() => router.push("/auth/login")} className="w-full">
+									<Button
+										onClick={() => router.push("/auth/login")}
+										className="w-full"
+									>
 										Sign In
 									</Button>
 								</>
@@ -158,8 +163,8 @@ export default function PushNotificationManagerOptimized() {
 									<p className="text-sm text-green-600">
 										✓ You are subscribed to push notifications
 									</p>
-									<Button 
-										onClick={unsubscribeFromPush} 
+									<Button
+										onClick={unsubscribeFromPush}
 										variant="outline"
 										disabled={isPending}
 									>

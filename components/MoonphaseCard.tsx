@@ -44,7 +44,9 @@ export default function MoonPhaseCard({
 		});
 
 		// Listen for auth changes
-		const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
 			setUser(session?.user ?? null);
 		});
 
@@ -82,7 +84,9 @@ export default function MoonPhaseCard({
 			// Check if user is authenticated
 			if (!user) {
 				toast.error("Please sign in to enable notifications");
-				router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+				router.push(
+					`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+				);
 				return;
 			}
 
@@ -114,7 +118,9 @@ export default function MoonPhaseCard({
 				const errorData = await response.json();
 				if (response.status === 401) {
 					toast.error("Please sign in to enable notifications");
-					router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+					router.push(
+						`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+					);
 					return;
 				}
 				throw new Error(errorData.error || "Failed to subscribe");
@@ -160,7 +166,11 @@ export default function MoonPhaseCard({
 					className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance"
 					type="button"
 				>
-					{subscribed ? "Subscribed!" : (user ? `Remind me ${timeUntilPhase}` : "Sign in to subscribe")}
+					{subscribed
+						? "Subscribed!"
+						: user
+							? `Remind me ${timeUntilPhase}`
+							: "Sign in to subscribe"}
 				</button>
 			)}
 

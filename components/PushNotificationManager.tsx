@@ -43,7 +43,9 @@ export default function PushNotificationManager() {
 		});
 
 		// Listen for auth changes
-		const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+		const {
+			data: { subscription: authSubscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
 			setUser(session?.user ?? null);
 		});
 
@@ -85,7 +87,7 @@ export default function PushNotificationManager() {
 			new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
 			"hair",
 		);
-		
+
 		if (result.success) {
 			toast.success("Successfully subscribed to notifications");
 		} else {
@@ -140,7 +142,10 @@ export default function PushNotificationManager() {
 									<p className="text-sm text-neutral-600 mb-3">
 										Sign in to enable push notifications
 									</p>
-									<Button onClick={() => router.push("/auth/login")} className="w-full">
+									<Button
+										onClick={() => router.push("/auth/login")}
+										className="w-full"
+									>
 										Sign In
 									</Button>
 								</>
