@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Bell, BellOff, Timer, CheckCircle2 } from "lucide-react";
 import {
-	subscribeUser,
+	subscribeFasting,
 	unsubscribeUser,
 	sendNotification,
 } from "@/app/actions";
@@ -297,11 +297,11 @@ export default function FastingClient({
 				setSubscription(sub);
 
 				// Subscribe to fasting reminders
-				await subscribeUser(
+				await subscribeFasting(
 					sub.toJSON(),
 					"Full Moon Fasting",
 					nextFullMoon || new Date().toISOString(),
-					"fasting",
+					isActive: fastingState.isActive,
 				);
 				toast.success("Notifications enabled");
 			}
