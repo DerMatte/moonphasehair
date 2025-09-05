@@ -7,11 +7,15 @@ import { cn } from "@/lib/utils";
 import logo from "@/public/moonphasehair-logo.png";
 import { motion, AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Close, Menu } from "@nsmr/pixelart-react";
 import { Label } from "../ui/label";
 import { DesktopNavbar } from "./DesktopNavbar";
-import { type LocationData } from "./index";
+import type { LocationData } from "./index";
+import { createClient } from "@/lib/supabase/client";
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { LoginButton } from "@/components/auth/login-button";
+import type { User } from "@supabase/supabase-js";
 
 export function Navbar({
 	locationData,
@@ -19,8 +23,26 @@ export function Navbar({
 	locationData: LocationData | null;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
 	const toggleMenu = () => setIsOpen(!isOpen);
 	const pathname = usePathname();
+	const supabase = createClient();
+
+	useEffect(() => {
+		// Get initial user
+		supabase.auth.getUser().then(({ data: { user } }) => {
+			setUser(user);
+		});
+
+		// Listen for auth changes
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
+		return () => subscription.unsubscribe();
+	}, [supabase.auth]);
 
 	const menuVariants = {
 		closed: {
@@ -49,7 +71,7 @@ export function Navbar({
 	return (
 		<nav className="w-full font-medium pt-2">
 			{/* Desktop Layout */}
-			<DesktopNavbar pathname={pathname} />
+			<DesktopNavbar pathname={pathname} user={user} />
 
 			{/* Mobile Layout */}
 			<div className="md:hidden flex items-center justify-between w-full h-12">
@@ -63,10 +85,10 @@ export function Navbar({
 					/>
 				</Link>
 
-				{/* Mobile Right Side - Location Icon + Menu Button */}
-				<div className="flex items-center space-x-3 h-12">
-					{/* Location Icon on Mobile */}
-					{/* <Pin size={32} /> */}
+				{/* Mobile Right Side - Auth + Menu Button */}
+				<div className="flex items-center space-x-2 h-12">
+					{/* Auth Button */}
+					{user ? <UserDropdown user={user} /> : <LoginButton />}
 
 					{/* Hamburger Menu Button */}
 					<motion.button
@@ -117,6 +139,23 @@ export function Navbar({
 								>
 									Full Moon Fasting
 								</Link>
+							</motion.div>
+							{user && (
+								<motion.div variants={linkVariants} transition={{ delay: 0.2 }}>
+									<Link
+										href="/profile"
+										onClick={() => setIsOpen(false)}
+										className={cn(
+											buttonVariants({ variant: "ghost" }),
+											"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium w-full flex justify-start items-center",
+											pathname === "/profile" && "bg-neutral-200",
+										)}
+									>
+										Profile
+									</Link>
+								</motion.div>
+							)}
+							<motion.div variants={linkVariants} transition={{ delay: user ? 0.3 : 0.2 }}>
 								<Label className="flex items-center justify-start text-xs text-center px-3 pt-4 rounded bg-transparent text-neutral-600 ">
 									<span className="font-medium">Location:</span>
 									{locationData?.city}, {locationData?.country}

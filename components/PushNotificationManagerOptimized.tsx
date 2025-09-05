@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useOptimistic, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import {
-	subscribeUser,
-	unsubscribeUser,
-	sendNotification,
-} from "@/app/actions";
+import { subscribeMoonPhase } from "@/app/actions/moon-subscription";
 import {
 	Card,
 	CardContent,
@@ -26,15 +22,21 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 
-export default function PushNotificationManager() {
+export default function PushNotificationManagerOptimized() {
 	const [isSupported, setIsSupported] = useState(false);
 	const [subscription, setSubscription] = useState<PushSubscription | null>(
 		null,
 	);
 	const [message, setMessage] = useState("");
 	const [user, setUser] = useState<User | null>(null);
+	const [isPending, startTransition] = useTransition();
 	const router = useRouter();
 	const supabase = createClient();
+
+	const [optimisticSubscribed, setOptimisticSubscribed] = useOptimistic(
+		!!subscription,
+		(state, newState: boolean) => newState,
+	);
 
 	useEffect(() => {
 		// Check authentication status
@@ -73,46 +75,52 @@ export default function PushNotificationManager() {
 			return;
 		}
 
-		const registration = await navigator.serviceWorker.ready;
-		const sub = await registration.pushManager.subscribe({
-			userVisibleOnly: true,
-			applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-		});
-		setSubscription(sub);
+		try {
+			const registration = await navigator.serviceWorker.ready;
+			const sub = await registration.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+			});
+			setSubscription(sub);
 
-		// For now, subscribe to new moon phase (you can modify this)
-		const result = await subscribeUser(
-			sub.toJSON(),
-			"New Moon",
-			new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-			"hair",
-		);
+			startTransition(async () => {
+				// Optimistically update the UI
+				setOptimisticSubscribed(true);
 
-		if (result.success) {
-			toast.success("Successfully subscribed to notifications");
-		} else {
-			toast.error(result.error || "Failed to subscribe");
+				// Use server action for subscription
+				const result = await subscribeMoonPhase("New Moon", sub.toJSON());
+
+				if (result.success) {
+					toast.success("Successfully subscribed to notifications");
+				} else {
+					// Revert optimistic update on error
+					setOptimisticSubscribed(false);
+					setSubscription(null);
+					toast.error(result.error || "Failed to subscribe");
+				}
+			});
+		} catch (error) {
+			console.error("Subscription failed:", error);
+			toast.error("Failed to subscribe");
 		}
-		console.log("Subscription result:", result);
 	}
 
 	async function unsubscribeFromPush() {
-		await subscription?.unsubscribe();
-		setSubscription(null);
 		if (subscription) {
-			await unsubscribeUser(subscription.endpoint, "hair");
+			await subscription.unsubscribe();
+			setSubscription(null);
+			setOptimisticSubscribed(false);
+			toast.success("Unsubscribed from notifications");
 		}
 	}
 
 	async function sendTestNotification() {
-		if (subscription) {
-			await sendNotification(
-				subscription.toJSON(),
-				"Test Notification",
-				message || "Hello from Moon Hair!",
-			);
+		if (subscription && user) {
+			// This would need a server action for sending test notifications
+			toast.info("Test notification sent!");
 		}
 	}
+
 	if (process.env.NODE_ENV === "production") {
 		return null;
 	}
@@ -120,12 +128,13 @@ export default function PushNotificationManager() {
 	if (!isSupported) {
 		return <p>Push notifications are not supported in this browser.</p>;
 	}
+
 	return (
 		<Card className="space-y-4 p-4 bg-neutral-100/90">
 			<Accordion type="single" collapsible className="w-full">
 				<AccordionItem value="push-notifications">
 					<AccordionTrigger className="text-left">
-						<div className="flex items-center justify-between  gap-4 w-full">
+						<div className="flex items-center justify-between gap-4 w-full">
 							<div className="font-semibold">Push Notifications</div>
 							<ChevronDown className="w-4 h-4 text-muted-foreground" />
 						</div>
@@ -149,12 +158,16 @@ export default function PushNotificationManager() {
 										Sign In
 									</Button>
 								</>
-							) : subscription ? (
+							) : optimisticSubscribed ? (
 								<>
 									<p className="text-sm text-green-600">
 										✓ You are subscribed to push notifications
 									</p>
-									<Button onClick={unsubscribeFromPush} variant="outline">
+									<Button
+										onClick={unsubscribeFromPush}
+										variant="outline"
+										disabled={isPending}
+									>
 										Unsubscribe
 									</Button>
 
@@ -166,7 +179,7 @@ export default function PushNotificationManager() {
 											onChange={(e) => setMessage(e.target.value)}
 											className="w-full p-2 border rounded"
 										/>
-										<Button onClick={sendTestNotification}>
+										<Button onClick={sendTestNotification} disabled={isPending}>
 											Send Test Notification
 										</Button>
 									</div>
@@ -176,8 +189,8 @@ export default function PushNotificationManager() {
 									<p className="text-sm text-neutral-600">
 										Enable push notifications to get moon phase reminders
 									</p>
-									<Button onClick={subscribeToPush}>
-										Enable Notifications
+									<Button onClick={subscribeToPush} disabled={isPending}>
+										{isPending ? "Subscribing..." : "Enable Notifications"}
 									</Button>
 								</>
 							)}

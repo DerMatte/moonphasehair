@@ -1,7 +1,7 @@
 "use server";
 
 import webpush from "web-push";
-import { kv } from "@vercel/kv";
+import { createClient } from "@/lib/supabase/server";
 
 if (
 	!process.env.VAPID_EMAIL ||
@@ -17,29 +17,58 @@ webpush.setVapidDetails(
 	process.env.VAPID_PRIVATE_KEY,
 );
 
-export async function subscribeUser(
-	subscriptionData: any,
+export async function subscribeFasting(
+	subscriptionData: PushSubscriptionJSON,
 	targetPhase: string,
 	nextDate: string,
-	subscriptionType: "hair" | "fasting" = "hair",
 ) {
 	try {
-		// Store in KV with endpoint and type as key for uniqueness
-		const key = `${subscriptionData.endpoint}:${subscriptionType}`;
-		await kv.set(
-			key,
-			JSON.stringify({
-				subscription: subscriptionData,
-				targetPhase,
-				nextDate,
-				subscriptionType,
-				createdAt: new Date().toISOString(),
-			}),
-		);
+		const supabase = await createClient();
+
+		// Check if user is authenticated
+		const {
+			data: { user },
+			error: authError,
+		} = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
+		}
+
+		// Validate required fields
+		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
+			return {
+				success: false,
+				error: "Missing required fields: subscription endpoint, target phase, or next date",
+			};
+		}
+
+		// First, check if subscription exists and delete it (upsert behavior)
+		await supabase
+			.from("subscriptions")
+			.delete()
+			.eq("user_id", user.id)
+			.eq("endpoint", subscriptionData.endpoint)
+			.eq("target_phase", targetPhase)
+			.eq("subscription_type", "fasting");
+
+		// Then insert the new subscription
+		const { error } = await supabase.from("subscriptions").insert({
+			user_id: user.id,
+			endpoint: subscriptionData.endpoint,
+			subscription_type: "fasting",
+			subscription_data: subscriptionData,
+			target_phase: targetPhase,
+			next_date: nextDate,
+		});
+
+		if (error) {
+			console.error("Error storing fasting subscription:", error);
+			return { success: false, error: "Failed to store subscription" };
+		}
 
 		return { success: true };
 	} catch (error) {
-		console.error("Error storing subscription:", error);
+		console.error("Error storing fasting subscription:", error);
 		return { success: false, error: "Failed to store subscription" };
 	}
 }
@@ -49,8 +78,29 @@ export async function unsubscribeUser(
 	subscriptionType: "hair" | "fasting" = "hair",
 ) {
 	try {
-		const key = `${endpoint}:${subscriptionType}`;
-		await kv.del(key);
+		const supabase = await createClient();
+
+		// Check if user is authenticated
+		const {
+			data: { user },
+			error: authError,
+		} = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
+		}
+
+		const { error } = await supabase
+			.from("subscriptions")
+			.delete()
+			.eq("user_id", user.id)
+			.eq("endpoint", endpoint)
+			.eq("subscription_type", subscriptionType);
+
+		if (error) {
+			console.error("Error removing subscription:", error);
+			return { success: false, error: "Failed to remove subscription" };
+		}
+
 		return { success: true };
 	} catch (error) {
 		console.error("Error removing subscription:", error);
@@ -58,15 +108,72 @@ export async function unsubscribeUser(
 	}
 }
 
+export async function subscribeUser(
+	subscriptionData: PushSubscriptionJSON,
+	targetPhase: string,
+	nextDate: string,
+	subscriptionType: "hair" | "fasting" = "hair",
+) {
+	try {
+		const supabase = await createClient();
+
+		// Check if user is authenticated
+		const {
+			data: { user },
+			error: authError,
+		} = await supabase.auth.getUser();
+		if (authError || !user) {
+			return { success: false, error: "Authentication required" };
+		}
+
+		// Validate required fields
+		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
+			return {
+				success: false,
+				error: "Missing required fields: subscription endpoint, target phase, or next date",
+			};
+		}
+
+		// First, check if subscription exists and delete it (upsert behavior)
+		await supabase
+			.from("subscriptions")
+			.delete()
+			.eq("user_id", user.id)
+			.eq("endpoint", subscriptionData.endpoint)
+			.eq("target_phase", targetPhase)
+			.eq("subscription_type", subscriptionType);
+
+		// Then insert the new subscription
+		const { error } = await supabase.from("subscriptions").insert({
+			user_id: user.id,
+			endpoint: subscriptionData.endpoint,
+			subscription_type: subscriptionType,
+			subscription_data: subscriptionData,
+			target_phase: targetPhase,
+			next_date: nextDate,
+		});
+
+		if (error) {
+			console.error("Error storing subscription:", error);
+			return { success: false, error: "Failed to store subscription" };
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error("Error storing subscription:", error);
+		return { success: false, error: "Failed to store subscription" };
+	}
+}
+
 export async function sendNotification(
-	subscriptionData: any,
+	subscriptionData: PushSubscriptionJSON,
 	title: string,
 	body: string,
 	url?: string,
 ) {
 	try {
 		await webpush.sendNotification(
-			subscriptionData,
+			subscriptionData as any,
 			JSON.stringify({
 				title,
 				body,

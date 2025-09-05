@@ -5,7 +5,7 @@ import {
 	CarouselNext,
 	CarouselPrevious,
 } from "@/components/ui/carousel";
-import MoonPhaseCard from "@/components/MoonphaseCard";
+import MoonPhaseCardServer from "@/components/MoonphaseCardServer";
 import type { MoonPhaseData } from "@/lib/MoonPhaseCalculator";
 import { getNextMoonPhaseOccurrence } from "@/lib/MoonPhaseCalculator";
 import { formatDateWithTimezone } from "@/lib/utils";
@@ -32,7 +32,7 @@ export default function MoonCarousel({
 					<CarouselContent className="-ml-2 md:-ml-4">
 						{/* Previous Phase */}
 						<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
-							<MoonPhaseCard
+							<MoonPhaseCardServer
 								title="Previous"
 								phase={moonPhaseData.previous.name}
 								phaseValue={moonPhaseData.previous.phaseValue}
@@ -49,7 +49,7 @@ export default function MoonCarousel({
 						{/* Current Phase - Highlighted */}
 						<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
 							<div className="ring-2 ring-yellow-500">
-								<MoonPhaseCard
+								<MoonPhaseCardServer
 									title="Current"
 									phase={moonPhaseData.current.name}
 									phaseValue={moonPhaseData.current.phaseValue}
@@ -64,7 +64,7 @@ export default function MoonCarousel({
 
 						{/* Next Phase */}
 						<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
-							<MoonPhaseCard
+							<MoonPhaseCardServer
 								title="Next"
 								phase={moonPhaseData.next.name}
 								phaseValue={moonPhaseData.next.phaseValue}
@@ -82,7 +82,7 @@ export default function MoonCarousel({
 								key={`upcoming-${upcoming.name}-${upcoming.date.getTime()}`}
 								className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4"
 							>
-								<MoonPhaseCard
+								<MoonPhaseCardServer
 									title="Upcoming"
 									phase={upcoming.name}
 									phaseValue={upcoming.phase}
@@ -107,7 +107,7 @@ export default function MoonCarousel({
 									key={phase.name}
 									className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4"
 								>
-									<MoonPhaseCard
+									<MoonPhaseCardServer
 										title="Phase"
 										phase={phase.name}
 										phaseValue={phase.phaseValue}
@@ -129,7 +129,7 @@ export default function MoonCarousel({
 			{/* Mobile vertical list */}
 			<div className="md:hidden space-y-4">
 				{/* Previous Phase */}
-				<MoonPhaseCard
+				<MoonPhaseCardServer
 					title="Previous"
 					phase={moonPhaseData.previous.name}
 					phaseValue={moonPhaseData.previous.phaseValue}
@@ -142,7 +142,7 @@ export default function MoonCarousel({
 
 				{/* Current Phase - Highlighted */}
 				<div className="ring-2 ring-yellow-500 rounded-lg">
-					<MoonPhaseCard
+					<MoonPhaseCardServer
 						title="Current"
 						phase={moonPhaseData.current.name}
 						phaseValue={moonPhaseData.current.phaseValue}
@@ -155,7 +155,7 @@ export default function MoonCarousel({
 				</div>
 
 				{/* Next Phase */}
-				<MoonPhaseCard
+				<MoonPhaseCardServer
 					title="Next"
 					phase={moonPhaseData.next.name}
 					phaseValue={moonPhaseData.next.phaseValue}
@@ -168,7 +168,7 @@ export default function MoonCarousel({
 
 				{/* Upcoming Phases */}
 				{moonPhaseData.upcoming.slice(0, 1).map((upcoming) => (
-					<MoonPhaseCard
+					<MoonPhaseCardServer
 						key={`mobile-upcoming-${upcoming.name}-${upcoming.date.getTime()}`}
 						title="Upcoming"
 						phase={upcoming.name}
@@ -189,7 +189,7 @@ export default function MoonCarousel({
 
 					return (
 						<div key={phase.name} className="space-y-4">
-							<MoonPhaseCard
+							<MoonPhaseCardServer
 								title="Phase"
 								phase={phase.name}
 								phaseValue={phase.phaseValue}

@@ -1,13 +1,16 @@
 "use client";
 
 import MoonIcon from "@/components/MoonIcon";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
 	getNextMoonPhaseOccurrence,
 	getTimeUntilDate,
 	getMoonPhaseWithTiming,
 } from "@/lib/MoonPhaseCalculator";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 // Moon phase card component
 export default function MoonPhaseCard({
@@ -30,6 +33,25 @@ export default function MoonPhaseCard({
 	action?: string;
 }) {
 	const [subscribed, setSubscribed] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
+	const router = useRouter();
+	const supabase = createClient();
+
+	useEffect(() => {
+		// Check authentication status
+		supabase.auth.getUser().then(({ data: { user } }) => {
+			setUser(user);
+		});
+
+		// Listen for auth changes
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
+		return () => subscription.unsubscribe();
+	}, [supabase.auth]);
 
 	// Calculate the next occurrence of this phase and time until it
 	const { nextOccurrenceDate, timeUntilPhase, isCurrentPhase } = useMemo(() => {
@@ -59,6 +81,15 @@ export default function MoonPhaseCard({
 
 	const handleSubscribe = async (targetPhase: string) => {
 		try {
+			// Check if user is authenticated
+			if (!user) {
+				toast.error("Please sign in to enable notifications");
+				router.push(
+					`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+				);
+				return;
+			}
+
 			if (!("PushManager" in window))
 				return alert("Push notifications not supported");
 
@@ -85,6 +116,13 @@ export default function MoonPhaseCard({
 
 			if (!response.ok) {
 				const errorData = await response.json();
+				if (response.status === 401) {
+					toast.error("Please sign in to enable notifications");
+					router.push(
+						`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+					);
+					return;
+				}
 				throw new Error(errorData.error || "Failed to subscribe");
 			}
 
@@ -128,7 +166,11 @@ export default function MoonPhaseCard({
 					className="bg-sky-200 hover:bg-sky-300 disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance"
 					type="button"
 				>
-					{subscribed ? "Subscribed!" : `Remind me ${timeUntilPhase}`}
+					{subscribed
+						? "Subscribed!"
+						: user
+							? `Remind me ${timeUntilPhase}`
+							: "Sign in to subscribe"}
 				</button>
 			)}
 

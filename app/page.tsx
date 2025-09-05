@@ -1,11 +1,8 @@
 import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
 import { formatDateTime } from "@/lib/utils";
 
-import MoonCarousel, { MoonCarouselSkeleton } from "@/components/MoonCarousel";
+import MoonCarousel from "@/components/MoonCarousel";
 import BigMoon from "@/components/BigMoon";
-import { Suspense } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export const revalidate = 3600; // 1 hour (60 * 60)
 
@@ -58,9 +55,7 @@ export default function MoonHairDashboard() {
 				</div>
 
 				{/* Horizontal scrollable moon phases section */}
-				<Suspense fallback={<MoonCarouselSkeleton />}>
-					<MoonCarousel moonPhaseData={moonPhaseData} />
-				</Suspense>
+				<MoonCarousel moonPhaseData={moonPhaseData} />
 			</div>
 		</div>
 	);
