@@ -129,11 +129,11 @@ export default function RootLayout({
 								<span>
 									Homage:{" "}
 									<a
-										href="https://x.com/moonhairbot"
+										href={process.env.NEXT_PUBLIC_HOMAGE_LINK}
 										target="_blank"
 										rel="noopener"
 									>
-										Moon Hair
+										{process.env.NEXT_PUBLIC_HOMAGE_NAME}
 									</a>
 								</span>
 								<InfoButton />

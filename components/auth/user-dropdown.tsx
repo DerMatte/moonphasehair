@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import Link from "next/link";
 
 interface UserDropdownProps {
 	user: SupabaseUser;
@@ -76,7 +77,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button variant="ghost" size="icon" className="rounded-full">
-					<Avatar className="h-8 w-8">
+					<Avatar className="h-8 w-8 rounded-full">
 						<AvatarImage
 							src={user.user_metadata?.avatar_url}
 							alt={user.user_metadata?.full_name || "User"}
@@ -85,7 +86,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
 					</Avatar>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-56">
+			<DropdownMenuContent align="end" className="w-56 bg-neutral-50">
 				<DropdownMenuLabel>
 					<div className="flex flex-col space-y-1">
 						<p className="text-sm font-medium leading-none">
@@ -97,7 +98,14 @@ export function UserDropdown({ user }: UserDropdownProps) {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={toggleNotifications}>
+				<DropdownMenuItem className="hover:bg-neutral-200 w-full cursor-pointer">
+					<Link href="/profile" className="flex items-center gap-2">
+						<User className="mr-2 h-4 w-4" />
+						Profile
+					</Link>
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem onClick={toggleNotifications} className="hover:bg-neutral-200 cursor-pointer">
 					{notificationsEnabled ? (
 						<>
 							<BellOff className="mr-2 h-4 w-4" />
@@ -111,7 +119,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
 					)}
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleSignOut}>
+				<DropdownMenuItem onClick={handleSignOut} className="hover:bg-neutral-200 cursor-pointer">
 					<LogOut className="mr-2 h-4 w-4" />
 					Sign Out
 				</DropdownMenuItem>

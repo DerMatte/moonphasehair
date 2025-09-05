@@ -30,7 +30,7 @@ export default async function ProfilePage() {
 				</div>
 
 				{/* User Info */}
-				<Card className="max-w-2xl mx-auto mb-8">
+				<Card className="">
 					<CardHeader className="">
 						<h2 className="text-xl font-semibold mb-4">Account Information</h2>
 					</CardHeader>

@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getNextMoonPhaseOccurrence } from "@/lib/MoonPhaseCalculator";
-import { revalidatePath } from "next/cache";
 
 export interface SubscriptionState {
 	success: boolean;
@@ -66,9 +65,6 @@ export async function subscribeMoonPhase(
 			return { success: false, error: "Failed to store subscription" };
 		}
 
-		// Revalidate the path to update the UI
-		revalidatePath("/");
-
 		return { success: true };
 	} catch (error) {
 		console.error("Error storing moon phase subscription:", error);
@@ -103,9 +99,6 @@ export async function unsubscribeMoonPhase(
 			console.error("Error removing moon phase subscription:", error);
 			return { success: false, error: "Failed to remove subscription" };
 		}
-
-		// Revalidate the path to update the UI
-		revalidatePath("/");
 
 		return { success: true };
 	} catch (error) {

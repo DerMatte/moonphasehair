@@ -25,7 +25,7 @@ export default async function UserSubscriptions() {
   const subscribedPhases = data;
 
   return (
-    <Card className="w-full max-w-md mx-auto mb-6">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="w-5 h-5" />

@@ -65,7 +65,7 @@ export function DesktopNavbar({
 			</div>
 
 			{/* Auth Section */}
-			<div className="">
+			<div className="mr-2">
 				{user ? <UserDropdown user={user} /> : <LoginButton />}
 			</div>
 		</div>

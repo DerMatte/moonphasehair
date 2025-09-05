@@ -34,15 +34,25 @@ export async function subscribeFasting(
 			return { success: false, error: "Authentication required" };
 		}
 
-		// First, check if subscription exists and delete it
+		// Validate required fields
+		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
+			return {
+				success: false,
+				error: "Missing required fields: subscription endpoint, target phase, or next date",
+			};
+		}
+
+		// First, check if subscription exists and delete it (upsert behavior)
 		await supabase
-			.from("fasting_states")
+			.from("subscriptions")
 			.delete()
 			.eq("user_id", user.id)
+			.eq("endpoint", subscriptionData.endpoint)
+			.eq("target_phase", targetPhase)
 			.eq("subscription_type", "fasting");
 
 		// Then insert the new subscription
-		const { error } = await supabase.from("fasting_states").insert({
+		const { error } = await supabase.from("subscriptions").insert({
 			user_id: user.id,
 			endpoint: subscriptionData.endpoint,
 			subscription_type: "fasting",
@@ -52,13 +62,13 @@ export async function subscribeFasting(
 		});
 
 		if (error) {
-			console.error("Error storing subscription:", error);
+			console.error("Error storing fasting subscription:", error);
 			return { success: false, error: "Failed to store subscription" };
 		}
 
 		return { success: true };
 	} catch (error) {
-		console.error("Error storing subscription:", error);
+		console.error("Error storing fasting subscription:", error);
 		return { success: false, error: "Failed to store subscription" };
 	}
 }

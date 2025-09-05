@@ -20,13 +20,26 @@ export async function GET(request: NextRequest) {
 
 	console.log(`🌙 Checking moon phase reminders at ${today.toISOString()}`);
 
-	// Get all hair (moon phase) subscriptions that are due for checking
+	// Get all subscriptions (both hair and fasting) that are due for checking
 	const { data: subscriptions, error } = await supabase
 		.from("subscriptions")
 		.select("*")
 		.eq("subscription_type", "hair")
 		.lte("next_date", today.toISOString());
 
+	const { data: fastingSubscriptions, error: fastingError } = await supabase
+		.from("subscriptions")
+		.select("*")
+		.eq("subscription_type", "fasting")
+		.lte("next_date", today.toISOString());
+
+	if (fastingError) {
+		console.error("Error fetching fasting subscriptions:", fastingError);
+		return NextResponse.json(
+			{ error: "Failed to fetch fasting subscriptions" },
+			{ status: 500 },
+		);
+	}
 	if (error) {
 		console.error("Error fetching subscriptions:", error);
 		return NextResponse.json(
@@ -49,7 +62,20 @@ export async function GET(request: NextRequest) {
 
 			// Check if the current phase matches the target phase
 			if (current.name === subscription.target_phase) {
-				console.log(`🌙 ${subscription.target_phase} phase detected! Sending notification...`);
+				console.log(`🌙 ${subscription.target_phase} phase detected! Sending ${subscription.subscription_type} notification...`);
+				
+				// Customize notification based on subscription type
+				const notificationTitle = subscription.subscription_type === "fasting" 
+					? `Full Moon Fasting Time! 🌙` 
+					: `${subscription.target_phase} Moon Phase is Here! 🌙`;
+				
+				const notificationBody = subscription.subscription_type === "fasting"
+					? `The Full Moon has arrived - perfect time for your fasting practice! ${current.action || "Time to cleanse and reset."}`
+					: `It's time for your ${current.name} moon phase reminder. ${current.action || "Perfect time for your moon-aligned activities!"}`;
+				
+				const notificationUrl = subscription.subscription_type === "fasting" 
+					? "/full-moon-fasting" 
+					: "/";
 				
 				// Send notification - target phase has arrived!
 				const notificationResponse = await fetch(
@@ -58,9 +84,9 @@ export async function GET(request: NextRequest) {
 						method: "POST",
 						body: JSON.stringify({
 							subscription: subscription.subscription_data,
-							title: `${subscription.target_phase} Moon Phase is Here! 🌙`,
-							body: `It's time for your ${current.name} moon phase reminder. ${current.action || "Perfect time for your moon-aligned activities!"}`,
-							url: "/", // Link back to app
+							title: notificationTitle,
+							body: notificationBody,
+							url: notificationUrl,
 						}),
 						headers: { "Content-Type": "application/json" },
 					},
