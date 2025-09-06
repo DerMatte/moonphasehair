@@ -19,6 +19,10 @@ if (!vapidEmail || !vapidPublicKey || !vapidPrivateKey) {
 }
 
 export async function POST(request: NextRequest) {
+
+	if (request.headers.get("Authorization") !== `Bearer ${process.env.API_SECRET}`) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 	try {
 		const { subscription, title, body, url } = await request.json();
 

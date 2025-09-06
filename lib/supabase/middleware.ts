@@ -38,10 +38,16 @@ export async function updateSession(request: NextRequest) {
 	// Public routes that don't require authentication
 	const publicRoutes = [
 		"/",
+		"/privacy",
 		"/full-moon-fasting",
 		"/auth/login",
 		"/auth/callback",
 		"/auth/auth-code-error",
+		"/api/location",
+		"/api/geo",
+		"/api/check-reminders",
+		"/api/send-notification",
+
 	];
 	const isPublicRoute = publicRoutes.some(
 		(route) =>

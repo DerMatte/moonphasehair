@@ -10,14 +10,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Icons } from "@/components/icons";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 	const [isLoading, setIsLoading] = useState<string | null>(null);
 	const supabase = createClient();
-	const router = useRouter();
 
 	const signInWithProvider = async (provider: "twitter" | "google") => {
 		try {
