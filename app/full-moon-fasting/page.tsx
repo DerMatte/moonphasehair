@@ -177,7 +177,7 @@ export default function FastingPage() {
 
 					{/* Second Column - Big Moon */}
 					<div className="flex items-center justify-center">
-						<div className="w-full max-w-md">
+						<div className="w-full max-w-md mb-32 lg:mb-0">
 							<BigMoon phase={moonData.current.lunarAgePercent} />
 						</div>
 					</div>

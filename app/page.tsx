@@ -14,7 +14,7 @@ export default function MoonHairDashboard() {
 		<div className="">
 			<div className="max-w-screen sm:max-w-7xl mx-auto p-4">
 				<div className="lg:flex lg:flex-row-reverse lg:items-center lg:gap-12">
-					<div className="mb-8 lg:mb-0 lg:flex-1">
+					<div className="mb-32 lg:mb-0 lg:flex-1">
 						<BigMoon phase={moonPhaseData.current.lunarAgePercent} />
 					</div>
 					<div className="lg:flex-1 lg:flex lg:flex-col lg:gap-15">
