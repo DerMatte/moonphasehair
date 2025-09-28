@@ -1,7 +1,36 @@
+"use client";
+
 // Big moon phase component using moon-pattern.png
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { getMoonPosition, type MoonPositionData } from "@/lib/moonPosition";
+import { useStoredLocation } from "@/hooks/useLocation";
+import { Compass, Navigation, MapPin, Loader2 } from "lucide-react";
 
 export default function BigMoon({ phase }: { phase: number }) {
+	const { location, loading: locationLoading, isUsingDefault } = useStoredLocation();
+	const [moonPosition, setMoonPosition] = useState<MoonPositionData | null>(null);
+	const [currentTime, setCurrentTime] = useState(new Date());
+
+	// Update moon position when location changes or every minute
+	useEffect(() => {
+		if (!location) return;
+
+		const updatePosition = () => {
+			const now = new Date();
+			setCurrentTime(now);
+			const position = getMoonPosition(now, location.latitude, location.longitude);
+			setMoonPosition(position);
+		};
+
+		// Initial update
+		updatePosition();
+
+		// Update every minute
+		const interval = setInterval(updatePosition, 60000);
+
+		return () => clearInterval(interval);
+	}, [location]);
 	// Use viewBox units instead of pixels for better scaling
 	const viewBoxSize = 100;
 	const radius = viewBoxSize / 2;
@@ -94,9 +123,71 @@ export default function BigMoon({ phase }: { phase: number }) {
 			{/* Bottom glow for extra effect */}
 			<div className="absolute -bottom-[10%] left-1/2 -translate-x-1/2 w-3/4 h-[10%] bg-neutral-200/20 blur-xl rounded-full" />
 
-			{/* Debug info - remove in production */}
-			<div className="absolute hidden md:inline-block -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 font-mono">
-				Phase: {(phase * 100).toFixed(1)}%
+			{/* Moon Position Information */}
+			<div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
+				<div className="bg-gradient-to-br from-white/5 to-white/10 dark:from-black/10 dark:to-black/20 backdrop-blur-lg rounded-2xl p-4 border border-white/20 dark:border-gray-700/30 shadow-xl">
+					{locationLoading ? (
+						<div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+							<Loader2 className="w-4 h-4 animate-spin" />
+							<span>Getting location...</span>
+						</div>
+					) : moonPosition ? (
+						<div className="space-y-3">
+							{/* Location indicator */}
+							{isUsingDefault && (
+								<div className="flex items-center justify-center gap-1.5 text-xs text-amber-500 dark:text-amber-400">
+									<MapPin className="w-3.5 h-3.5" />
+									<span className="font-medium">Using default location (New York City)</span>
+								</div>
+							)}
+							
+							{/* Position data */}
+							<div className="grid grid-cols-2 gap-4">
+								{/* Azimuth */}
+								<div className="bg-white/5 dark:bg-black/10 rounded-xl p-3">
+									<div className="flex items-center gap-2 mb-1">
+										<Compass className="w-4 h-4 text-blue-400" />
+										<span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Azimuth</span>
+									</div>
+									<div className="text-lg font-bold text-gray-900 dark:text-white">
+										{moonPosition.azimuthDegrees.toFixed(1)}°
+									</div>
+									<div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+										{moonPosition.azimuthDirection}
+									</div>
+								</div>
+								
+								{/* Altitude/Elevation */}
+								<div className="bg-white/5 dark:bg-black/10 rounded-xl p-3">
+									<div className="flex items-center gap-2 mb-1">
+										<Navigation className="w-4 h-4 text-green-400" />
+										<span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Elevation</span>
+									</div>
+									<div className="text-lg font-bold text-gray-900 dark:text-white">
+										{moonPosition.altitudeDegrees.toFixed(1)}°
+									</div>
+									<div className="text-xs font-medium">
+										<span className={moonPosition.isVisible ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}>
+											{moonPosition.isVisible ? '↑ Above horizon' : '↓ Below horizon'}
+										</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Phase and update info */}
+							<div className="pt-3 border-t border-white/10 dark:border-gray-700/20">
+								<div className="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400">
+									<span>Phase: <span className="font-medium text-gray-900 dark:text-white">{(phase * 100).toFixed(1)}%</span></span>
+									<span>Updated: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+								</div>
+							</div>
+						</div>
+					) : (
+						<div className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+							Position data unavailable
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);
