@@ -173,6 +173,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.13)
+      twitter-api-v2:
+        specifier: ^1.27.0
+        version: 1.27.0
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.1.9(@types/react@19.1.12))(@types/react@19.1.12)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -4030,6 +4033,9 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  twitter-api-v2@1.27.0:
+    resolution: {integrity: sha512-hbIFwzg0NeOcFOdmJqtKMCXjLjc0INff/7NwhnZ2zpnw65oku8i+0eMxo5M0iTc1hs+inD/IpDw3S0Xh2c45QQ==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -8309,6 +8315,8 @@ snapshots:
       strip-bom: 3.0.0
 
   tslib@2.8.1: {}
+
+  twitter-api-v2@1.27.0: {}
 
   type-check@0.4.0:
     dependencies:
