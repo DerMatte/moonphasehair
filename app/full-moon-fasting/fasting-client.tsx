@@ -105,7 +105,8 @@ export default function FastingClient({
 		// Listen for auth changes
 		const {
 			data: { subscription: authSubscription },
-		} = supabase.auth.onAuthStateChange(async (_event: unknown, session) => {
+		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+		} = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
 			setUser(session?.user ?? null);
 			if (session?.user) {
 				// Reload fasting state when user signs in
