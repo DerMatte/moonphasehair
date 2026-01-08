@@ -109,6 +109,14 @@ export async function unsubscribeMoonPhase(
 
 export async function getSubscriptionStatus(phase: string): Promise<boolean> {
 	try {
+		// Check if Supabase env vars are available (they won't be during build)
+		if (
+			!process.env.NEXT_PUBLIC_SUPABASE_URL ||
+			!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+		) {
+			return false;
+		}
+
 		const supabase = await createClient();
 
 		// Check if user is authenticated

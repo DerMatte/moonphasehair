@@ -2,28 +2,25 @@ import webpush from "web-push";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-if (
-	!process.env.VAPID_EMAIL ||
-	!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-	!process.env.VAPID_PRIVATE_KEY
-) {
-	throw new Error("Missing VAPID environment variables");
-}
+function getVapidConfig() {
+	const vapidEmail = process.env.VAPID_EMAIL;
+	const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+	const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 
-const vapidEmail = process.env.VAPID_EMAIL;
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+	if (!vapidEmail || !vapidPublicKey || !vapidPrivateKey) {
+		throw new Error("Missing VAPID environment variables");
+	}
 
-if (!vapidEmail || !vapidPublicKey || !vapidPrivateKey) {
-	throw new Error("Missing VAPID environment variables");
+	return { vapidEmail, vapidPublicKey, vapidPrivateKey };
 }
 
 export async function POST(request: NextRequest) {
-
 	if (request.headers.get("Authorization") !== `Bearer ${process.env.API_SECRET}`) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 	try {
+		const { vapidEmail, vapidPublicKey, vapidPrivateKey } = getVapidConfig();
+
 		const { subscription, title, body, url } = await request.json();
 
 		// Validate required fields

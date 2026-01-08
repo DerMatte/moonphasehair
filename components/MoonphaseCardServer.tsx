@@ -4,11 +4,10 @@ import {
 	getTimeUntilDate,
 	getMoonPhaseWithTiming,
 } from "@/lib/MoonPhaseCalculator";
-import { getSubscriptionStatus } from "@/app/actions/moon-subscription";
 import { MoonPhaseCardClient } from "./MoonphaseCardOptimized";
 
 // Server Component
-export default async function MoonPhaseCardServer({
+export default function MoonPhaseCardServer({
 	title,
 	phase,
 	phaseValue,
@@ -41,9 +40,7 @@ export default async function MoonPhaseCardServer({
 		timeUntilPhase = nextDate ? getTimeUntilDate(nextDate) : null;
 	}
 
-	// Check subscription status on the server
-	const isSubscribed = await getSubscriptionStatus(phase);
-
+	// Subscription status will be checked client-side
 	return (
 		<div className="flex flex-col gap-4 h-full items-start justify-start p-6">
 			{/* Moon Icon */}
@@ -74,7 +71,6 @@ export default async function MoonPhaseCardServer({
 				phase={phase}
 				timeUntilPhase={timeUntilPhase}
 				isCurrentPhase={isCurrentPhase}
-				initialSubscribed={isSubscribed}
 			/>
 
 			{/* Current Phase Status */}
