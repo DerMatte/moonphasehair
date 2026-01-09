@@ -1,9 +1,10 @@
 "use client";
 
-import { useOptimistic, useTransition, useEffect, useState } from "react";
+import { useTransition, useEffect, useState } from "react";
 import {
 	subscribeMoonPhase,
 	unsubscribeMoonPhase,
+	getSubscriptionStatus,
 } from "@/app/actions/moon-subscription";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -14,40 +15,51 @@ interface MoonPhaseCardClientProps {
 	phase: string;
 	timeUntilPhase: string | null;
 	isCurrentPhase: boolean;
-	initialSubscribed: boolean;
 }
 
 export function MoonPhaseCardClient({
 	phase,
 	timeUntilPhase,
 	isCurrentPhase,
-	initialSubscribed,
 }: MoonPhaseCardClientProps) {
 	const [isPending, startTransition] = useTransition();
 	const [user, setUser] = useState<User | null>(null);
+	const [isSubscribed, setIsSubscribed] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 	const router = useRouter();
 	const supabase = createClient();
 
-	const [optimisticSubscribed, setOptimisticSubscribed] = useOptimistic(
-		initialSubscribed,
-		(_state, newState: boolean) => newState,
-	);
-
 	useEffect(() => {
 		// Check authentication status
-		supabase.auth.getUser().then(({ data: { user } }) => {
-			setUser(user);
+		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+		supabase.auth.getUser().then(({ data }: any) => {
+			setUser(data?.user ?? null);
 		});
 
 		// Listen for auth changes
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_event, session) => {
+		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+		} = supabase.auth.onAuthStateChange((_event: any, session: any) => {
 			setUser(session?.user ?? null);
 		});
 
 		return () => subscription.unsubscribe();
 	}, [supabase.auth]);
+
+	// Fetch subscription status when user or phase changes
+	useEffect(() => {
+		async function checkSubscription() {
+			if (user) {
+				const status = await getSubscriptionStatus(phase);
+				setIsSubscribed(status);
+			} else {
+				setIsSubscribed(false);
+			}
+			setIsLoading(false);
+		}
+		checkSubscription();
+	}, [user, phase]);
 
 	const handleToggleSubscription = async () => {
 		// Check if user is authenticated
@@ -60,10 +72,10 @@ export function MoonPhaseCardClient({
 		}
 
 		// If already subscribed, unsubscribe
-		if (optimisticSubscribed) {
+		if (isSubscribed) {
 			startTransition(async () => {
 				// Optimistically update the UI
-				setOptimisticSubscribed(false);
+				setIsSubscribed(false);
 
 				// Call server action to unsubscribe
 				const result = await unsubscribeMoonPhase(phase);
@@ -72,7 +84,7 @@ export function MoonPhaseCardClient({
 					toast.success(`Unsubscribed from ${phase} notifications`);
 				} else {
 					// Revert optimistic update on error
-					setOptimisticSubscribed(true);
+					setIsSubscribed(true);
 					toast.error(result.error || "Failed to unsubscribe");
 				}
 			});
@@ -114,7 +126,7 @@ export function MoonPhaseCardClient({
 
 			startTransition(async () => {
 				// Optimistically update the UI
-				setOptimisticSubscribed(true);
+				setIsSubscribed(true);
 
 				// Call server action
 				const result = await subscribeMoonPhase(phase, subscription.toJSON());
@@ -123,7 +135,7 @@ export function MoonPhaseCardClient({
 					toast.success(`Subscribed to ${phase} notifications!`);
 				} else {
 					// Revert optimistic update on error
-					setOptimisticSubscribed(false);
+					setIsSubscribed(false);
 					if (result.error === "Authentication required") {
 						toast.error("Please sign in to enable notifications");
 						router.push(
@@ -144,20 +156,32 @@ export function MoonPhaseCardClient({
 		return null;
 	}
 
+	if (isLoading) {
+		return (
+			<button
+				disabled
+				className="bg-gray-200 px-4 py-2 rounded-lg font-mono text-base"
+				type="button"
+			>
+				Loading...
+			</button>
+		);
+	}
+
 	return (
 		<button
 			onClick={handleToggleSubscription}
 			disabled={isPending}
 			className={`${
-				optimisticSubscribed 
+				isSubscribed 
 					? "bg-green-200 hover:bg-red-200" 
 					: "bg-sky-200 hover:bg-sky-300"
 			} disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance`}
 			type="button"
 		>
 			{isPending
-				? optimisticSubscribed ? "Unsubscribing..." : "Subscribing..."
-				: optimisticSubscribed
+				? isSubscribed ? "Unsubscribing..." : "Subscribing..."
+				: isSubscribed
 					? "✓ Subscribed (click to unsubscribe)"
 					: user
 						? `Remind me ${timeUntilPhase}`

@@ -4,6 +4,9 @@ import UserSubscriptions from "@/components/UserSubscriptions";
 import { User } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
+// This page must be dynamic because it checks authentication status
+export const dynamic = "force-dynamic";
+
 export default async function ProfilePage() {
 	const supabase = await createClient();
 	const {
