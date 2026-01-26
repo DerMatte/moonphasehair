@@ -16,6 +16,31 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 
 
+## X API cron tweets
+
+The Vercel cron job `/api/cron/x-tweets` checks every 10 minutes and posts:
+
+- 2 days before the next moon phase change
+- At noon (UTC) on the day of the phase change
+
+Required environment variables:
+
+```
+CRON_SECRET=your_cron_secret
+X_API_KEY=your_x_app_key
+X_API_SECRET=your_x_app_secret
+X_ACCESS_TOKEN=your_x_access_token
+X_ACCESS_SECRET=your_x_access_secret
+```
+
+Optional (idempotency + safe testing):
+
+```
+KV_REST_API_URL=your_vercel_kv_rest_url
+KV_REST_API_TOKEN=your_vercel_kv_rest_token
+X_TWEET_DRY_RUN=true
+```
+
 ## Todo
 
 - [x] Update the big moon to show the actual moon phase 
