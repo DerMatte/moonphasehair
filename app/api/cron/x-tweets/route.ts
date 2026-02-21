@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
 	const tweetsToSend: Array<{
 		type: TweetType;
-		phase: typeof phaseInfo.current;
+		phase: typeof phaseInfo.next;
 		targetDate: Date;
 	}> = [];
 

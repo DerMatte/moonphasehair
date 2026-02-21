@@ -1,7 +1,7 @@
 import LocationInfo from "./LocationInfo";
 import { NavbarWrapper } from "./NavbarWrapper";
-import { baseUrl } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 
 export interface LocationData {
 	city: string;
@@ -13,15 +13,24 @@ export interface LocationData {
 	longitude?: number;
 }
 
-export const getLocationData = async () => {
-	const res = await fetch(new URL("/api/location", baseUrl), {
-		cache: "no-store",
-	});
-	if (res.ok) {
-		return await res.json();
-	}
-	console.error("Error fetching location data:", res.statusText);
-	return null;
+export const getLocationData = async (): Promise<LocationData | null> => {
+	const requestHeaders = await headers();
+	const city = requestHeaders.get("x-vercel-ip-city");
+	const country = requestHeaders.get("x-vercel-ip-country");
+	const region = requestHeaders.get("x-vercel-ip-country-region");
+	const timezone = requestHeaders.get("x-vercel-ip-timezone");
+	const latitude = requestHeaders.get("x-vercel-ip-latitude");
+	const longitude = requestHeaders.get("x-vercel-ip-longitude");
+
+	return {
+		city: city || "Unknown",
+		country: country || "Unknown",
+		region: region || "",
+		timezone: timezone || "UTC",
+		source: "vercel-header",
+		latitude: latitude ? Number.parseFloat(latitude) : undefined,
+		longitude: longitude ? Number.parseFloat(longitude) : undefined,
+	};
 };
 
 export default async function Nav() {
