@@ -4,9 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
 import { InfoButton } from "./InfoButton";
-import LocationInfo from "../components/Nav/LocationInfo";
 import ServiceWorker from "./ServiceWorker";
-import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
 import PageTransition from "@/components/PageTransition";
@@ -20,7 +18,7 @@ export const metadata: Metadata = {
 	},
 	description:
 		"How the current moon phase affects your hair growth and styling.",
-	manifest: "/site.webmanifest",
+	manifest: "/manifest.json",
 	robots: {
 		index: true,
 		follow: true,
@@ -79,9 +77,6 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<head>
-				<link rel="manifest" href="/manifest.json" />
-			</head>
 			<body
 				className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased text-black bg-neutral-100 font-mono`}
 			>
