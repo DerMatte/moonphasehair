@@ -9,7 +9,6 @@ import ServiceWorker from "./ServiceWorker";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
-import { Navbar } from "@/components/Nav/Navbar";
 import PageTransition from "@/components/PageTransition";
 import Nav from "@/components/Nav";
 

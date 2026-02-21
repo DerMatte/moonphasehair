@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	// typescript: {
-	//   ignoreBuildErrors: true,
-	// },
+	// Optimize barrel imports - avoids loading 1,500+ modules from lucide-react
+	// Reduces dev boot time, build time, and cold start by 15-70%
+	experimental: {
+		optimizePackageImports: ["lucide-react"],
+	},
 	async headers() {
 		return [
 			{

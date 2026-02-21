@@ -34,11 +34,12 @@ export const getLocationData = async (): Promise<LocationData | null> => {
 };
 
 export default async function Nav() {
-	const locationData = await getLocationData();
-	const supabase = await createClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
+	// Run independent async operations in parallel to eliminate waterfall (Rule 1.4)
+	const [locationData, authResult] = await Promise.all([
+		getLocationData(),
+		createClient().then((supabase) => supabase.auth.getUser()),
+	]);
+	const user = authResult?.data?.user;
 
 	return (
 		<header className="w-full">
