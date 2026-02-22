@@ -53,13 +53,17 @@ export default async function Image() {
 			})
 		: "Unknown";
 
-	// Font loading, process.cwd() is Next.js project directory
+	// Font and image loading, process.cwd() is Next.js project directory
 	const spaceGroteskBold = await readFile(
 		join(process.cwd(), "/public/SpaceGrotesk-Bold.ttf"),
 	);
 	const spaceMonoRegular = await readFile(
 		join(process.cwd(), "/public/SpaceMono-Regular.ttf"),
 	);
+	const moonPatternBuffer = await readFile(
+		join(process.cwd(), "/public/moon-pattern.png"),
+	);
+	const moonPatternSrc = `data:image/png;base64,${moonPatternBuffer.toString("base64")}`;
 
 	return new ImageResponse(
 		<div
@@ -114,7 +118,7 @@ export default async function Image() {
 
 			{/* Moon emoji */}
 			<img
-				src="https://moonphasehair.com/moon-pattern.png"
+				src={moonPatternSrc}
 				alt="Moon pattern"
 				style={{
 					marginTop: "16px",

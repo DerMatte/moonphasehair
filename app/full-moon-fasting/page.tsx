@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { Suspense } from "react";
 import {
 	getMoonPhaseWithTiming,
@@ -15,8 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Moon, Calendar, Heart, Brain, Sparkles, Clock } from "lucide-react";
 import { Metadata } from "next";
-
-export const revalidate = 3600; // 1 hour
 
 export const metadata: Metadata = {
 	title: "Full Moon Fasting",
@@ -45,7 +44,11 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function FastingPage() {
+export default async function FastingPage() {
+	"use cache";
+	cacheLife("hours");
+	cacheTag("full-moon-fasting");
+
 	// Get current moon phase data and next full moon
 	const moonData = getMoonPhaseWithTiming(new Date());
 

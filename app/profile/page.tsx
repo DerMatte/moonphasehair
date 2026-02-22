@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import UserSubscriptions from "@/components/UserSubscriptions";
 import { User } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
-// This page must be dynamic because it checks authentication status
-export const dynamic = "force-dynamic";
-
-export default async function ProfilePage() {
+async function ProfileContent() {
 	const supabase = await createClient();
 	const {
 		data: { user },
@@ -85,5 +83,17 @@ export default async function ProfilePage() {
 				</Card>
 			</div>
 		</div>
+	);
+}
+
+export default function ProfilePage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-[50vh] animate-pulse items-center justify-center" />
+			}
+		>
+			<ProfileContent />
+		</Suspense>
 	);
 }

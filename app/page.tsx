@@ -1,12 +1,15 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
 import { formatDateTime } from "@/lib/utils";
 
 import MoonCarousel from "@/components/MoonCarousel";
 import BigMoon from "@/components/BigMoon";
 
-export const revalidate = 3600; // 1 hour (60 * 60)
+export default async function MoonHairDashboard() {
+	"use cache";
+	cacheLife("hours");
+	cacheTag("moon-dashboard");
 
-export default function MoonHairDashboard() {
 	// Get moon phase timing information
 	const moonPhaseData = getMoonPhaseWithTiming(new Date());
 

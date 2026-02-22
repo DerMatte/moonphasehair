@@ -4,9 +4,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_MS = 9 * 60 * 1000;
 const SITE_URL = "https://moonphasehair.com";

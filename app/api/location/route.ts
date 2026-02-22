@@ -29,6 +29,14 @@ export async function GET(request: NextRequest) {
 			source: "vercel",
 		});
 	} catch (error) {
+		// Re-throw prerender interruptions so Next.js PPR can handle them correctly
+		if (
+			error instanceof Error &&
+			(error as Error & { digest?: string }).digest ===
+				"NEXT_PRERENDER_INTERRUPTED"
+		) {
+			throw error;
+		}
 		console.error("Geolocation error:", error);
 		return Response.json(
 			{

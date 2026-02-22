@@ -1,11 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 
-// This page must be dynamic because it checks authentication status
-export const dynamic = "force-dynamic";
+function LoginSkeleton() {
+	return (
+		<div className="flex min-h-[50vh] items-center justify-center">
+			<div className="animate-pulse text-muted-foreground">Loading...</div>
+		</div>
+	);
+}
 
-export default async function LoginPage({
+async function LoginPageContent({
 	searchParams,
 }: {
 	searchParams: Promise<{ redirect?: string }>;
@@ -15,7 +21,6 @@ export default async function LoginPage({
 		data: { user },
 	} = await supabase.auth.getUser();
 
-	// Await searchParams as required in Next.js 15
 	const params = await searchParams;
 
 	if (user) {
@@ -23,4 +28,16 @@ export default async function LoginPage({
 	}
 
 	return <LoginForm redirectTo={params.redirect} />;
+}
+
+export default function LoginPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ redirect?: string }>;
+}) {
+	return (
+		<Suspense fallback={<LoginSkeleton />}>
+			<LoginPageContent searchParams={searchParams} />
+		</Suspense>
+	);
 }

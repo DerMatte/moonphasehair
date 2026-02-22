@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -104,7 +105,15 @@ export default function RootLayout({
 								backgroundPosition: "center",
 							}}
 						/>
-						<Nav />
+						<Suspense
+							fallback={
+								<header className="w-full">
+									<div className="flex flex-row items-center justify-between px-6 sm:px-8 py-4 sm:py-8 border-b border-neutral-200 min-h-[60px] animate-pulse" />
+								</header>
+							}
+						>
+							<Nav />
+						</Suspense>
 						{/* Content Container - positioned within border */}
 						<div
 							className="relative h-full flex flex-col"

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	cacheComponents: true,
 	// Optimize barrel imports - avoids loading 1,500+ modules from lucide-react
 	// Reduces dev boot time, build time, and cold start by 15-70%
 	experimental: {

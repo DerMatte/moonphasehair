@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { getMoonPhase } from "../lib/MoonPhaseCalculator";
 
 // enum Hemisphere {
@@ -6,6 +7,10 @@ import { getMoonPhase } from "../lib/MoonPhaseCalculator";
 // }
 
 export default async function MoonPhase() {
+	"use cache";
+	cacheLife("hours");
+	cacheTag("moon-phase");
+
 	const today = new Date();
 	const currentPhase = getMoonPhase(today);
 
