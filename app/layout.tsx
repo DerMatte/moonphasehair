@@ -4,12 +4,14 @@ import { Suspense } from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
+import dynamic from "next/dynamic";
 import { InfoButton } from "./InfoButton";
-import ServiceWorker from "./ServiceWorker";
-import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
-import PageTransition from "@/components/PageTransition";
 import Nav from "@/components/Nav";
+
+const ServiceWorker = dynamic(() => import("./ServiceWorker"));
+const InstallPrompt = dynamic(() => import("@/components/InstallPrompt"));
+const PageTransition = dynamic(() => import("@/components/PageTransition"));
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://www.moonphasehair.com"),

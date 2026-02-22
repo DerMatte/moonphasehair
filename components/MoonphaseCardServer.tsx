@@ -2,11 +2,9 @@ import MoonIcon from "@/components/MoonIcon";
 import {
 	getNextMoonPhaseOccurrence,
 	getTimeUntilDate,
-	getMoonPhaseWithTiming,
 } from "@/lib/MoonPhaseCalculator";
 import { MoonPhaseCardClient } from "./MoonphaseCardOptimized";
 
-// Server Component
 export default function MoonPhaseCardServer({
 	title,
 	phase,
@@ -16,6 +14,8 @@ export default function MoonPhaseCardServer({
 	icon,
 	dateText,
 	action,
+	isCurrentPhase = false,
+	currentPhaseEndDate,
 }: {
 	title: string;
 	phase: string;
@@ -25,17 +25,15 @@ export default function MoonPhaseCardServer({
 	icon?: string;
 	dateText?: string;
 	action?: string;
+	isCurrentPhase?: boolean;
+	currentPhaseEndDate?: Date;
 }) {
-	// Calculate the next occurrence of this phase and time until it
-	const currentPhaseData = getMoonPhaseWithTiming(new Date());
-	const isCurrentPhase = currentPhaseData.current.name === phase;
-
 	let timeUntilPhase: string | null = null;
 
-	if (isCurrentPhase) {
-		const timeUntilEnd = getTimeUntilDate(currentPhaseData.current.endDate);
+	if (isCurrentPhase && currentPhaseEndDate) {
+		const timeUntilEnd = getTimeUntilDate(currentPhaseEndDate);
 		timeUntilPhase = `ends ${timeUntilEnd}`;
-	} else {
+	} else if (!isCurrentPhase) {
 		const nextDate = getNextMoonPhaseOccurrence(phase);
 		timeUntilPhase = nextDate ? getTimeUntilDate(nextDate) : null;
 	}

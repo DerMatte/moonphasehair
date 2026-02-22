@@ -13,7 +13,5 @@ export function NavbarWrapper({
 	locationData,
 	initialUser,
 }: NavbarWrapperProps) {
-	// The Navbar component will handle its own auth state updates
-	// but we pass the initial user from the server
-	return <Navbar locationData={locationData} />;
+	return <Navbar locationData={locationData} initialUser={initialUser} />;
 }

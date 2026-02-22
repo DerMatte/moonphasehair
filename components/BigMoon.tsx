@@ -77,14 +77,17 @@ export default function BigMoon({ phase }: { phase: number }) {
 							</radialGradient>
 						</defs>
 
-						{/* Draw the shadow path if it exists */}
-						{calculatePath(phase) && (
+					{/* Draw the shadow path if it exists */}
+					{(() => {
+						const path = calculatePath(phase);
+						return path ? (
 							<path
-								d={calculatePath(phase)}
+								d={path}
 								fill={`url(#moonShadowGradient-${phase})`}
 								opacity="0.9"
 							/>
-						)}
+						) : null;
+					})()}
 					</svg>
 
 					{/* Inner shadow for depth */}

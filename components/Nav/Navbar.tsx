@@ -17,25 +17,44 @@ import { UserDropdown } from "@/components/auth/user-dropdown";
 import { LoginButton } from "@/components/auth/login-button";
 import type { User } from "@supabase/supabase-js";
 
+const menuVariants = {
+	closed: {
+		opacity: 0,
+		height: 0,
+		transition: {
+			duration: 0.3,
+			ease: [0.4, 0.0, 0.2, 1] as const,
+		},
+	},
+	open: {
+		opacity: 1,
+		height: "auto",
+		transition: {
+			duration: 0.3,
+			ease: [0.4, 0.0, 0.2, 1] as const,
+		},
+	},
+} as const;
+
+const linkVariants = {
+	closed: { opacity: 0, y: -10 },
+	open: { opacity: 1, y: 0 },
+};
+
 export function Navbar({
 	locationData,
+	initialUser = null,
 }: {
 	locationData: LocationData | null;
+	initialUser?: User | null;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
-	const [user, setUser] = useState<User | null>(null);
-	const toggleMenu = () => setIsOpen(!isOpen);
+	const [user, setUser] = useState<User | null>(initialUser);
+	const toggleMenu = () => setIsOpen((prev) => !prev);
 	const pathname = usePathname();
 	const supabase = createClient();
 
 	useEffect(() => {
-		// Get initial user
-		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
-		supabase.auth.getUser().then(({ data }: any) => {
-			setUser(data?.user ?? null);
-		});
-
-		// Listen for auth changes
 		const {
 			data: { subscription },
 		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
@@ -45,30 +64,6 @@ export function Navbar({
 
 		return () => subscription.unsubscribe();
 	}, [supabase.auth]);
-
-	const menuVariants = {
-		closed: {
-			opacity: 0,
-			height: 0,
-			transition: {
-				duration: 0.3,
-				ease: [0.4, 0.0, 0.2, 1] as const,
-			},
-		},
-		open: {
-			opacity: 1,
-			height: "auto",
-			transition: {
-				duration: 0.3,
-				ease: [0.4, 0.0, 0.2, 1] as const,
-			},
-		},
-	} as const;
-
-	const linkVariants = {
-		closed: { opacity: 0, y: -10 },
-		open: { opacity: 1, y: 0 },
-	};
 
 	return (
 		<nav className="w-full font-medium pt-2">

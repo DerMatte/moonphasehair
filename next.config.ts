@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 	// Optimize barrel imports - avoids loading 1,500+ modules from lucide-react
 	// Reduces dev boot time, build time, and cold start by 15-70%
 	experimental: {
-		optimizePackageImports: ["lucide-react"],
+		optimizePackageImports: ["lucide-react", "@nsmr/pixelart-react"],
 	},
 	async headers() {
 		return [

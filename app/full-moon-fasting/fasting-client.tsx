@@ -77,27 +77,28 @@ export default function FastingClient({
 			} = await supabase.auth.getUser();
 			setUser(user);
 
-			if (user) {
-				// Load current fasting state from database
-				const fastingResult = await getCurrentFasting();
-				if (fastingResult.success && fastingResult.data) {
-					const dbFast = fastingResult.data;
-					setFastingState({
-						id: dbFast.id,
-						isActive: dbFast.is_active,
-						startTime: dbFast.start_time,
-						endTime: dbFast.end_time,
-						duration: (dbFast.duration || 24) as FastDuration,
-						scheduled: dbFast.scheduled,
-					});
-				}
+		if (user) {
+			const [fastingResult, subscriptionResult] = await Promise.all([
+				getCurrentFasting(),
+				getFastingSubscriptionStatus(),
+			]);
 
-				// Check fasting notification subscription status
-				const subscriptionResult = await getFastingSubscriptionStatus();
-				if (subscriptionResult.success) {
-					setIsSubscribedToNotifications(subscriptionResult.subscribed);
-				}
+			if (fastingResult.success && fastingResult.data) {
+				const dbFast = fastingResult.data;
+				setFastingState({
+					id: dbFast.id,
+					isActive: dbFast.is_active,
+					startTime: dbFast.start_time,
+					endTime: dbFast.end_time,
+					duration: (dbFast.duration || 24) as FastDuration,
+					scheduled: dbFast.scheduled,
+				});
 			}
+
+			if (subscriptionResult.success) {
+				setIsSubscribedToNotifications(subscriptionResult.subscribed);
+			}
+		}
 		};
 
 		initializeData();
