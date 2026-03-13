@@ -17,7 +17,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 	const [isLoading, setIsLoading] = useState<string | null>(null);
 	const supabase = createClient();
 
-	const signInWithProvider = async (provider: "twitter" | "google") => {
+	const signInWithProvider = async (provider: "x" | "google") => {
 		try {
 			setIsLoading(provider);
 
@@ -60,13 +60,13 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 					<div className="flex flex-col gap-2">
 						<Button
 							variant="outline"
-							onClick={() => signInWithProvider("twitter")}
+							onClick={() => signInWithProvider("x")}
 							disabled={isLoading !== null}
 							className="flex w-full whitespace-normal"
 							title="Continue with X"
 							aria-label="Login with X"
 						>
-							{isLoading === "twitter" ? (
+							{isLoading === "x" ? (
 								<Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
 							) : (
 								<Icons.twitter className="mr-2 h-4 w-4" />
