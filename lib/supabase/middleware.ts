@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
 		"/api/geo",
 		"/api/check-reminders",
 		"/api/send-notification",
-
+		"/api/cron/x-tweets",
 	];
 	const isPublicRoute = publicRoutes.some(
 		(route) =>

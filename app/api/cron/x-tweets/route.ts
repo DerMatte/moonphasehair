@@ -1,5 +1,5 @@
 import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
-import { kv } from "@vercel/kv";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
@@ -9,9 +9,6 @@ const WINDOW_MS = 9 * 60 * 1000;
 const SITE_URL = "https://moonphasehair.com";
 
 type TweetType = "pre" | "noon";
-
-const hasKvConfig = () =>
-	Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
 const toUtcNoon = (date: Date) =>
 	new Date(
@@ -140,25 +137,29 @@ export async function GET(request: NextRequest) {
 		});
 	}
 
-	const useKv = hasKvConfig();
+	const supabase = createAdminClient();
 	const results = [];
 
 	for (const tweet of tweetsToSend) {
-		const key = `x-tweet:${tweet.type}:${tweet.phase.name}:${toDateKey(
-			tweet.targetDate,
-		)}`;
+		const dateKey = toDateKey(tweet.targetDate);
 
-		if (useKv) {
-			const existing = await kv.get(key);
-			if (existing) {
-				results.push({
-					type: tweet.type,
-					phase: tweet.phase.name,
-					status: "skipped",
-					reason: "already_sent",
-				});
-				continue;
-			}
+		// Check if already sent
+		const { data: existing } = await supabase
+			.from("sent_tweets")
+			.select("id")
+			.eq("tweet_type", tweet.type)
+			.eq("phase_name", tweet.phase.name)
+			.eq("target_date", dateKey)
+			.maybeSingle();
+
+		if (existing) {
+			results.push({
+				type: tweet.type,
+				phase: tweet.phase.name,
+				status: "skipped",
+				reason: "already_sent",
+			});
+			continue;
 		}
 
 		const text = buildTweetText(tweet.type, tweet.phase);
@@ -175,9 +176,12 @@ export async function GET(request: NextRequest) {
 
 		try {
 			const response = await twitterClient.v2.tweet(text);
-			if (useKv) {
-				await kv.set(key, response.data.id, { ex: 40 * 24 * 60 * 60 });
-			}
+			await supabase.from("sent_tweets").insert({
+				tweet_type: tweet.type,
+				phase_name: tweet.phase.name,
+				target_date: dateKey,
+				tweet_id: response.data.id,
+			});
 			results.push({
 				type: tweet.type,
 				phase: tweet.phase.name,

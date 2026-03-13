@@ -33,13 +33,13 @@ X_ACCESS_TOKEN=your_x_access_token
 X_ACCESS_SECRET=your_x_access_secret
 ```
 
-Optional (idempotency + safe testing):
+Optional (safe testing):
 
 ```
-KV_REST_API_URL=your_vercel_kv_rest_url
-KV_REST_API_TOKEN=your_vercel_kv_rest_token
 X_TWEET_DRY_RUN=true
 ```
+
+Tweet dedup is handled via the `sent_tweets` table in Supabase (requires `SUPABASE_SERVICE_ROLE_KEY`).
 
 ## Todo
 

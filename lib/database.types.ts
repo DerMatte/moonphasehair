@@ -98,5 +98,31 @@ export type Database = {
 				};
 			};
 		};
+			sent_tweets: {
+				Row: {
+					id: string;
+					tweet_type: string;
+					phase_name: string;
+					target_date: string;
+					tweet_id: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					tweet_type: string;
+					phase_name: string;
+					target_date: string;
+					tweet_id?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					tweet_type?: string;
+					phase_name?: string;
+					target_date?: string;
+					tweet_id?: string | null;
+					created_at?: string;
+				};
+			};
 	};
 };
