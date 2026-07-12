@@ -45,6 +45,7 @@ export async function updateSession(request: NextRequest) {
 		"/auth/auth-code-error",
 		"/api/location",
 		"/api/geo",
+		"/api/moon-orientation",
 		"/api/check-reminders",
 		"/api/send-notification",
 		"/api/cron/x-tweets",

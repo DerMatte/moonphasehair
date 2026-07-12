@@ -1,32 +1,31 @@
+"use client";
+
 // Big moon phase component using moon-pattern.png
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { moonShadowPath } from "@/lib/moonShadowPath";
 
 export default function BigMoon({ phase }: { phase: number }) {
 	// Use viewBox units instead of pixels for better scaling
 	const viewBoxSize = 100;
-	const radius = viewBoxSize / 2;
+	const shadowPath = moonShadowPath(phase, viewBoxSize);
 
-	// Inverted calculatePath function - shadows and illumination are flipped
-	const calculatePath = (phase: number) => {
-		// Normalize phase to 0-1 range
-		const normalizedPhase = phase % 1;
+	// Tilt of the moon as it currently appears in the observer's sky,
+	// fetched client-side so the cached page stays location-agnostic
+	const [rotation, setRotation] = useState<number | null>(null);
 
-		if (normalizedPhase === 0 || normalizedPhase >= 0.99) {
-			// New moon - no dark overlay (now fully illuminated)
-			return "";
-		} else if (normalizedPhase === 0.5) {
-			// Full moon - full dark overlay (now fully shadowed)
-			return `M ${radius} 0 A ${radius} ${radius} 0 1 1 ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 1 ${radius} 0`;
-		} else if (normalizedPhase < 0.5) {
-			// Waxing phases - shadow advances from left to right (inverted)
-			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
-			return `M ${radius} 0 A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 0 : 1} ${radius} ${viewBoxSize} A ${radius} ${radius} 0 1 0 ${radius} 0`;
-		} else {
-			// Waning phases - shadow recedes from right to left (inverted)
-			const offset = Math.cos(normalizedPhase * 2 * Math.PI) * radius;
-			return `M ${radius} 0 A ${radius} ${radius} 0 1 0 ${radius} ${viewBoxSize} A ${Math.abs(offset)} ${radius} 0 1 ${offset > 0 ? 1 : 0} ${radius} 0`;
-		}
-	};
+	useEffect(() => {
+		const controller = new AbortController();
+		fetch("/api/moon-orientation", { signal: controller.signal })
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				if (data && typeof data.rotation === "number") {
+					setRotation(data.rotation);
+				}
+			})
+			.catch(() => {});
+		return () => controller.abort();
+	}, []);
 
 	return (
 		<div className="relative w-full max-w-[400px] sm:max-w-[500px] md:max-w-[600px] lg:max-w-[700px] aspect-square mx-auto">
@@ -43,8 +42,11 @@ export default function BigMoon({ phase }: { phase: number }) {
 					className="absolute bottom-0 left-0 -translate-x-4 -translate-y-4 -z-10 w-1/2"
 				/>
 
-				{/* Moon texture background */}
-				<div className="relative w-full h-full rounded-full overflow-hidden">
+				{/* Moon texture background, rotated to match the moon's tilt in the sky */}
+				<div
+					className="relative w-full h-full rounded-full overflow-hidden transition-transform duration-1000 ease-out"
+					style={{ transform: `rotate(${rotation ?? 0}deg)` }}
+				>
 					{/* Next.js optimized background image */}
 					<Image
 						src="/moon-pattern.png"
@@ -77,17 +79,14 @@ export default function BigMoon({ phase }: { phase: number }) {
 							</radialGradient>
 						</defs>
 
-					{/* Draw the shadow path if it exists */}
-					{(() => {
-						const path = calculatePath(phase);
-						return path ? (
+						{/* Draw the shadow path if it exists */}
+						{shadowPath ? (
 							<path
-								d={path}
+								d={shadowPath}
 								fill={`url(#moonShadowGradient-${phase})`}
 								opacity="0.9"
 							/>
-						) : null;
-					})()}
+						) : null}
 					</svg>
 
 					{/* Inner shadow for depth */}
@@ -101,6 +100,7 @@ export default function BigMoon({ phase }: { phase: number }) {
 			{/* Debug info - remove in production */}
 			<div className="absolute hidden md:inline-block -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 font-mono">
 				Phase: {(phase * 100).toFixed(1)}%
+				{rotation !== null && ` · Tilt: ${rotation.toFixed(0)}°`}
 			</div>
 		</div>
 	);
