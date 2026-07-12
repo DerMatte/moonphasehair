@@ -1,3 +1,4 @@
+import MoonPhaseCardServer from "@/components/MoonphaseCardServer";
 import {
 	Carousel,
 	CarouselContent,
@@ -5,11 +6,10 @@ import {
 	CarouselNext,
 	CarouselPrevious,
 } from "@/components/ui/carousel";
-import MoonPhaseCardServer from "@/components/MoonphaseCardServer";
+import { moonPhases } from "@/lib/consts";
 import type { MoonPhaseData } from "@/lib/MoonPhaseCalculator";
 import { getNextMoonPhaseOccurrence } from "@/lib/MoonPhaseCalculator";
 import { formatDateWithTimezone } from "@/lib/utils";
-import { moonPhases } from "@/lib/consts";
 
 export default function MoonCarousel({
 	moonPhaseData,
@@ -30,53 +30,53 @@ export default function MoonCarousel({
 					className="w-full carousel-smooth-scroll"
 				>
 					<CarouselContent className="-ml-2 md:-ml-4">
-					{/* Previous Phase */}
-					<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
-						<MoonPhaseCardServer
-							title="Previous"
-							phase={moonPhaseData.previous.name}
-							phaseValue={moonPhaseData.previous.phaseValue}
-							icon={moonPhaseData.previous.icon}
-							emoji={moonPhaseData.previous.emoji}
-							description={moonPhaseData.previous.description}
-							dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
-							action={moonPhaseData.previous.action}
-						/>
-					</CarouselItem>
-
-					<hr className="my-4 rotate-90" />
-
-					{/* Current Phase - Highlighted */}
-					<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
-						<div className="ring-2 ring-yellow-500">
+						{/* Previous Phase */}
+						<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
 							<MoonPhaseCardServer
-								title="Current"
-								phase={moonPhaseData.current.name}
-								phaseValue={moonPhaseData.current.phaseValue}
-								icon={moonPhaseData.current.icon}
-								emoji={moonPhaseData.current.emoji}
-								description={moonPhaseData.current.description}
-								dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
-								action={moonPhaseData.current.action}
-								isCurrentPhase
-								currentPhaseEndDate={moonPhaseData.current.endDate}
+								title="Previous"
+								phase={moonPhaseData.previous.name}
+								phaseValue={moonPhaseData.previous.phaseValue}
+								icon={moonPhaseData.previous.icon}
+								emoji={moonPhaseData.previous.emoji}
+								description={moonPhaseData.previous.description}
+								dateText={`${formatDateWithTimezone(moonPhaseData.previous.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.previous.endDate, false)}`}
+								action={moonPhaseData.previous.action}
 							/>
-						</div>
-					</CarouselItem>
+						</CarouselItem>
 
-					{/* Next Phase */}
-					<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
-						<MoonPhaseCardServer
-							title="Next"
-							phase={moonPhaseData.next.name}
-							phaseValue={moonPhaseData.next.phaseValue}
-							icon={moonPhaseData.next.icon}
-							emoji={moonPhaseData.next.emoji}
-							description={moonPhaseData.next.description}
-							dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
-							action={moonPhaseData.next.action}
-						/>
-					</CarouselItem>
+						<hr className="my-4 rotate-90" />
+
+						{/* Current Phase - Highlighted */}
+						<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
+							<div className="ring-2 ring-yellow-500">
+								<MoonPhaseCardServer
+									title="Current"
+									phase={moonPhaseData.current.name}
+									phaseValue={moonPhaseData.current.phaseValue}
+									icon={moonPhaseData.current.icon}
+									emoji={moonPhaseData.current.emoji}
+									description={moonPhaseData.current.description}
+									dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
+									action={moonPhaseData.current.action}
+									isCurrentPhase
+									currentPhaseEndDate={moonPhaseData.current.endDate}
+								/>
+							</div>
+						</CarouselItem>
+
+						{/* Next Phase */}
+						<CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/4">
+							<MoonPhaseCardServer
+								title="Next"
+								phase={moonPhaseData.next.name}
+								phaseValue={moonPhaseData.next.phaseValue}
+								icon={moonPhaseData.next.icon}
+								emoji={moonPhaseData.next.emoji}
+								description={moonPhaseData.next.description}
+								dateText={`${formatDateWithTimezone(moonPhaseData.next.startDate, false)} - ${formatDateWithTimezone(moonPhaseData.next.endDate, false)}`}
+								action={moonPhaseData.next.action}
+							/>
+						</CarouselItem>
 
 						{/* Upcoming Phases */}
 						{moonPhaseData.upcoming.slice(0, 2).map((upcoming) => (
@@ -142,21 +142,21 @@ export default function MoonCarousel({
 					action={moonPhaseData.previous.action}
 				/>
 
-			{/* Current Phase - Highlighted */}
-			<div className="ring-2 ring-yellow-500 rounded-lg">
-				<MoonPhaseCardServer
-					title="Current"
-					phase={moonPhaseData.current.name}
-					phaseValue={moonPhaseData.current.phaseValue}
-					icon={moonPhaseData.current.icon}
-					emoji={moonPhaseData.current.emoji}
-					description={moonPhaseData.current.description}
-					dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
-					action={moonPhaseData.current.action}
-					isCurrentPhase
-					currentPhaseEndDate={moonPhaseData.current.endDate}
-				/>
-			</div>
+				{/* Current Phase - Highlighted */}
+				<div className="ring-2 ring-yellow-500 rounded-lg">
+					<MoonPhaseCardServer
+						title="Current"
+						phase={moonPhaseData.current.name}
+						phaseValue={moonPhaseData.current.phaseValue}
+						icon={moonPhaseData.current.icon}
+						emoji={moonPhaseData.current.emoji}
+						description={moonPhaseData.current.description}
+						dateText={`Since: ${formatDateWithTimezone(moonPhaseData.current.startDate)}`}
+						action={moonPhaseData.current.action}
+						isCurrentPhase
+						currentPhaseEndDate={moonPhaseData.current.endDate}
+					/>
+				</div>
 
 				{/* Next Phase */}
 				<MoonPhaseCardServer

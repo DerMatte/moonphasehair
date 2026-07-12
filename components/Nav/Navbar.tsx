@@ -1,21 +1,21 @@
 "use client";
 
+import { Close, Menu } from "@nsmr/pixelart-react";
+import type { User } from "@supabase/supabase-js";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import { buttonVariants } from "../ui/button";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LoginButton } from "@/components/auth/login-button";
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import logo from "@/public/moonphasehair-logo.png";
-import { motion, AnimatePresence } from "motion/react";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
-import { Close, Menu } from "@nsmr/pixelart-react";
+import { buttonVariants } from "../ui/button";
 import { Label } from "../ui/label";
 import { DesktopNavbar } from "./DesktopNavbar";
 import type { LocationData } from "./index";
-import { createClient } from "@/lib/supabase/client";
-import { UserDropdown } from "@/components/auth/user-dropdown";
-import { LoginButton } from "@/components/auth/login-button";
-import type { User } from "@supabase/supabase-js";
 
 const menuVariants = {
 	closed: {
@@ -57,7 +57,7 @@ export function Navbar({
 	useEffect(() => {
 		const {
 			data: { subscription },
-		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+			// biome-ignore lint/suspicious/noExplicitAny: Supabase types
 		} = supabase.auth.onAuthStateChange((_event: any, session: any) => {
 			setUser(session?.user ?? null);
 		});
@@ -152,7 +152,10 @@ export function Navbar({
 									</Link>
 								</motion.div>
 							)}
-							<motion.div variants={linkVariants} transition={{ delay: user ? 0.3 : 0.2 }}>
+							<motion.div
+								variants={linkVariants}
+								transition={{ delay: user ? 0.3 : 0.2 }}
+							>
 								<Label className="flex items-center justify-start text-xs text-center px-3 pt-4 rounded bg-transparent text-neutral-600 ">
 									<span className="font-medium">Location:</span>
 									{locationData?.city}, {locationData?.country}

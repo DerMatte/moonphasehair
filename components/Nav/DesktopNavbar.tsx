@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { buttonVariants } from "../ui/button";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import logo from "@/public/moonphasehair-logo.png";
-import { UserDropdown } from "@/components/auth/user-dropdown";
-import { LoginButton } from "@/components/auth/login-button";
 import type { User } from "@supabase/supabase-js";
+import Image from "next/image";
+import Link from "next/link";
+import { LoginButton } from "@/components/auth/login-button";
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { cn } from "@/lib/utils";
+import logo from "@/public/moonphasehair-logo.png";
+import { buttonVariants } from "../ui/button";
 
 export function DesktopNavbar({
 	pathname,

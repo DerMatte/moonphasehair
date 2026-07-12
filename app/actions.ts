@@ -38,7 +38,8 @@ export async function subscribeFasting(
 		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
 			return {
 				success: false,
-				error: "Missing required fields: subscription endpoint, target phase, or next date",
+				error:
+					"Missing required fields: subscription endpoint, target phase, or next date",
 			};
 		}
 
@@ -130,7 +131,8 @@ export async function subscribeUser(
 		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
 			return {
 				success: false,
-				error: "Missing required fields: subscription endpoint, target phase, or next date",
+				error:
+					"Missing required fields: subscription endpoint, target phase, or next date",
 			};
 		}
 

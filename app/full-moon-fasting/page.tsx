@@ -1,11 +1,7 @@
+import { Brain, Calendar, Clock, Heart, Moon, Sparkles } from "lucide-react";
+import type { Metadata } from "next";
 import { cacheLife, cacheTag } from "next/cache";
 import { Suspense } from "react";
-import {
-	getMoonPhaseWithTiming,
-	getNextMoonPhaseOccurrence,
-} from "@/lib/MoonPhaseCalculator";
-import { formatDateTime } from "@/lib/utils";
-import FastingClient from "./fasting-client";
 import BigMoon from "@/components/BigMoon";
 import {
 	Card,
@@ -14,8 +10,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Moon, Calendar, Heart, Brain, Sparkles, Clock } from "lucide-react";
-import { Metadata } from "next";
+import {
+	getMoonPhaseWithTiming,
+	getNextMoonPhaseOccurrence,
+} from "@/lib/MoonPhaseCalculator";
+import { formatDateTime } from "@/lib/utils";
+import FastingClient from "./fasting-client";
 
 export const metadata: Metadata = {
 	title: "Full Moon Fasting",
@@ -197,10 +197,7 @@ export default async function FastingPage() {
 							</div>
 						}
 					>
-						<FastingClient
-							currentPhase={moonData.current.name}
-							nextFullMoon={nextFullMoon?.toISOString() || null}
-						/>
+						<FastingClient nextFullMoon={nextFullMoon?.toISOString() || null} />
 					</Suspense>
 				</div>
 			</div>

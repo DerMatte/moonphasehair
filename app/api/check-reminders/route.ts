@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import {
 	getMoonPhaseWithTiming,
 	getNextMoonPhaseOccurrence,
 } from "@/lib/MoonPhaseCalculator";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
 	// Verify cron secret for security
@@ -48,12 +48,17 @@ export async function GET(request: NextRequest) {
 		);
 	}
 
-	console.log(`📋 Found ${subscriptions?.length || 0} subscriptions to check`);
+	const allSubscriptions = [
+		...(subscriptions || []),
+		...(fastingSubscriptions || []),
+	];
+
+	console.log(`📋 Found ${allSubscriptions.length} subscriptions to check`);
 
 	let notificationsSent = 0;
 	let subscriptionsUpdated = 0;
 
-	for (const subscription of subscriptions || []) {
+	for (const subscription of allSubscriptions) {
 		const reminderDate = new Date(subscription.next_date);
 
 		// Check if we've reached the reminder date
@@ -62,21 +67,26 @@ export async function GET(request: NextRequest) {
 
 			// Check if the current phase matches the target phase
 			if (current.name === subscription.target_phase) {
-				console.log(`🌙 ${subscription.target_phase} phase detected! Sending ${subscription.subscription_type} notification...`);
-				
+				console.log(
+					`🌙 ${subscription.target_phase} phase detected! Sending ${subscription.subscription_type} notification...`,
+				);
+
 				// Customize notification based on subscription type
-				const notificationTitle = subscription.subscription_type === "fasting" 
-					? `Full Moon Fasting Time! 🌙` 
-					: `${subscription.target_phase} Moon Phase is Here! 🌙`;
-				
-				const notificationBody = subscription.subscription_type === "fasting"
-					? `The Full Moon has arrived - perfect time for your fasting practice! ${current.action || "Time to cleanse and reset."}`
-					: `It's time for your ${current.name} moon phase reminder. ${current.action || "Perfect time for your moon-aligned activities!"}`;
-				
-				const notificationUrl = subscription.subscription_type === "fasting" 
-					? "/full-moon-fasting" 
-					: "/";
-				
+				const notificationTitle =
+					subscription.subscription_type === "fasting"
+						? `Full Moon Fasting Time! 🌙`
+						: `${subscription.target_phase} Moon Phase is Here! 🌙`;
+
+				const notificationBody =
+					subscription.subscription_type === "fasting"
+						? `The Full Moon has arrived - perfect time for your fasting practice! ${current.action || "Time to cleanse and reset."}`
+						: `It's time for your ${current.name} moon phase reminder. ${current.action || "Perfect time for your moon-aligned activities!"}`;
+
+				const notificationUrl =
+					subscription.subscription_type === "fasting"
+						? "/full-moon-fasting"
+						: "/";
+
 				// Send notification - target phase has arrived!
 				const notificationResponse = await fetch(
 					`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"}/api/send-notification`,
@@ -99,7 +109,9 @@ export async function GET(request: NextRequest) {
 						errorText,
 					);
 				} else {
-					console.log(`✅ Notification sent successfully for ${subscription.target_phase}`);
+					console.log(
+						`✅ Notification sent successfully for ${subscription.target_phase}`,
+					);
 					notificationsSent++;
 				}
 
@@ -117,9 +129,14 @@ export async function GET(request: NextRequest) {
 						.eq("id", subscription.id);
 
 					if (updateError) {
-						console.error(`❌ Error updating subscription for ${subscription.target_phase}:`, updateError);
+						console.error(
+							`❌ Error updating subscription for ${subscription.target_phase}:`,
+							updateError,
+						);
 					} else {
-						console.log(`📅 Updated ${subscription.target_phase} subscription to next occurrence: ${nextOccurrence.toISOString()}`);
+						console.log(
+							`📅 Updated ${subscription.target_phase} subscription to next occurrence: ${nextOccurrence.toISOString()}`,
+						);
 						subscriptionsUpdated++;
 					}
 				}
@@ -137,9 +154,14 @@ export async function GET(request: NextRequest) {
 						.eq("id", subscription.id);
 
 					if (updateError) {
-						console.error(`❌ Error recalculating subscription for ${subscription.target_phase}:`, updateError);
+						console.error(
+							`❌ Error recalculating subscription for ${subscription.target_phase}:`,
+							updateError,
+						);
 					} else {
-						console.log(`🔄 Recalculated ${subscription.target_phase} subscription to: ${nextOccurrence.toISOString()}`);
+						console.log(
+							`🔄 Recalculated ${subscription.target_phase} subscription to: ${nextOccurrence.toISOString()}`,
+						);
 						subscriptionsUpdated++;
 					}
 				}
@@ -147,11 +169,13 @@ export async function GET(request: NextRequest) {
 		}
 	}
 
-	console.log(`✅ Cron job completed: ${notificationsSent} notifications sent, ${subscriptionsUpdated} subscriptions updated`);
+	console.log(
+		`✅ Cron job completed: ${notificationsSent} notifications sent, ${subscriptionsUpdated} subscriptions updated`,
+	);
 
 	return NextResponse.json({
 		status: "checked",
-		count: subscriptions?.length || 0,
+		count: allSubscriptions.length,
 		notificationsSent,
 		subscriptionsUpdated,
 	});

@@ -1,6 +1,8 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -9,9 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Icons } from "@/components/icons";
-import { useState } from "react";
-import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 	const [isLoading, setIsLoading] = useState<string | null>(null);
@@ -54,9 +54,9 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="">
-						<p className="block sm:hidden text-xs text-muted-foreground mb-2">
-							Continue with:
-						</p>
+					<p className="block sm:hidden text-xs text-muted-foreground mb-2">
+						Continue with:
+					</p>
 					<div className="flex flex-col gap-2">
 						<Button
 							variant="outline"
@@ -90,7 +90,8 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 						</Button>
 					</div>
 					<p className="text-xs text-center text-muted-foreground mt-4 leading-relaxed">
-						By signing in, you agree that we store your name, email address and profile picture to provide you with a better experience.
+						By signing in, you agree that we store your name, email address and
+						profile picture to provide you with a better experience.
 					</p>
 				</CardContent>
 			</Card>

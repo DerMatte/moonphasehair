@@ -14,7 +14,8 @@
 			"!**/.next",
 			"!**/public",
 			"!**/build",
-			"!**/*.gen.ts"
+			"!**/*.gen.ts",
+			"!**/globals.css"
 		]
 	},
 	"formatter": {

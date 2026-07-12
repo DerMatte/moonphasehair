@@ -5,9 +5,9 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
 import dynamic from "next/dynamic";
-import { InfoButton } from "./InfoButton";
-import { Toaster } from "@/components/ui/sonner";
 import Nav from "@/components/Nav";
+import { Toaster } from "@/components/ui/sonner";
+import { InfoButton } from "./InfoButton";
 
 const ServiceWorker = dynamic(() => import("./ServiceWorker"));
 const InstallPrompt = dynamic(() => import("@/components/InstallPrompt"));

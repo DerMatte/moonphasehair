@@ -1,6 +1,12 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { Bell, BellOff, LogOut, User } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -10,13 +16,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Bell, BellOff } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { useState, useEffect } from "react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
-import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 interface UserDropdownProps {
 	user: SupabaseUser;
@@ -105,7 +105,10 @@ export function UserDropdown({ user }: UserDropdownProps) {
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={toggleNotifications} className="hover:bg-neutral-200 cursor-pointer">
+				<DropdownMenuItem
+					onClick={toggleNotifications}
+					className="hover:bg-neutral-200 cursor-pointer"
+				>
 					{notificationsEnabled ? (
 						<>
 							<BellOff className="mr-2 h-4 w-4" />
@@ -119,7 +122,10 @@ export function UserDropdown({ user }: UserDropdownProps) {
 					)}
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={handleSignOut} className="hover:bg-neutral-200 cursor-pointer">
+				<DropdownMenuItem
+					onClick={handleSignOut}
+					className="hover:bg-neutral-200 cursor-pointer"
+				>
 					<LogOut className="mr-2 h-4 w-4" />
 					Sign Out
 				</DropdownMenuItem>

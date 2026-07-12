@@ -1,15 +1,15 @@
 "use client";
 
-import { useTransition, useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
 import {
+	getSubscriptionStatus,
 	subscribeMoonPhase,
 	unsubscribeMoonPhase,
-	getSubscriptionStatus,
 } from "@/app/actions/moon-subscription";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
 
 interface MoonPhaseCardClientProps {
 	phase: string;
@@ -39,7 +39,7 @@ export function MoonPhaseCardClient({
 		// Listen for auth changes
 		const {
 			data: { subscription },
-		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+			// biome-ignore lint/suspicious/noExplicitAny: Supabase types
 		} = supabase.auth.onAuthStateChange((_event: any, session: any) => {
 			setUser(session?.user ?? null);
 		});
@@ -100,22 +100,22 @@ export function MoonPhaseCardClient({
 		try {
 			// Check if we already have permission
 			let permission = Notification.permission;
-			
+
 			// Only request permission if not already granted
 			if (permission === "default") {
 				permission = await Notification.requestPermission();
 			}
-			
+
 			if (permission !== "granted") {
 				toast.error("Notification permission denied");
 				return;
 			}
 
 			const registration = await navigator.serviceWorker.ready;
-			
+
 			// Check if already has a push subscription
 			let subscription = await registration.pushManager.getSubscription();
-			
+
 			// Create a new subscription if none exists
 			if (!subscription) {
 				subscription = await registration.pushManager.subscribe({
@@ -173,14 +173,16 @@ export function MoonPhaseCardClient({
 			onClick={handleToggleSubscription}
 			disabled={isPending}
 			className={`${
-				isSubscribed 
-					? "bg-green-200 hover:bg-red-200" 
+				isSubscribed
+					? "bg-green-200 hover:bg-red-200"
 					: "bg-sky-200 hover:bg-sky-300"
 			} disabled:bg-gray-300 px-4 py-2 rounded-lg font-mono text-base transition-colors text-balance`}
 			type="button"
 		>
 			{isPending
-				? isSubscribed ? "Unsubscribing..." : "Subscribing..."
+				? isSubscribed
+					? "Unsubscribing..."
+					: "Subscribing..."
 				: isSubscribed
 					? "✓ Subscribed (click to unsubscribe)"
 					: user

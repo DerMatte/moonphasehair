@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
 	readonly platforms: string[];
@@ -26,7 +26,8 @@ export default function InstallPrompt() {
 
 	useEffect(() => {
 		setIsIOS(
-			/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream,
+			/iPad|iPhone|iPod/.test(navigator.userAgent) &&
+				!(window as unknown as { MSStream?: unknown }).MSStream,
 		);
 
 		setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
@@ -38,10 +39,10 @@ export default function InstallPrompt() {
 			setPromptInstall(e);
 		};
 
-		window.addEventListener("beforeinstallprompt", ready as any);
+		window.addEventListener("beforeinstallprompt", ready as EventListener);
 
 		return () => {
-			window.removeEventListener("beforeinstallprompt", ready as any);
+			window.removeEventListener("beforeinstallprompt", ready as EventListener);
 		};
 	}, []);
 
@@ -49,8 +50,7 @@ export default function InstallPrompt() {
 		if (!promptInstall) {
 			return;
 		}
-		const result = await promptInstall.prompt();
-		toast.success("App installed successfully");
+		await promptInstall.prompt();
 		setPromptInstall(null);
 	};
 
@@ -59,9 +59,35 @@ export default function InstallPrompt() {
 	}
 
 	if (isIOS && !isIOSPromptClosed) {
-		toast.info(
-			"To install this app on your iOS device, tap the share button and add it to your Home Screen",
+		return (
+			<div className="fixed bottom-4 left-4 right-4 z-50 flex items-center justify-between gap-4 rounded-lg border bg-background p-4 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
+				<p className="text-sm">
+					To install this app on your iOS device, tap the share button and add
+					it to your Home Screen.
+				</p>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="shrink-0"
+					onClick={handleCloseIOSPrompt}
+					aria-label="Dismiss"
+				>
+					<X className="h-4 w-4" />
+				</Button>
+			</div>
 		);
 	}
+
+	if (promptInstall) {
+		return (
+			<div className="fixed bottom-4 left-4 right-4 z-50 flex items-center justify-between gap-4 rounded-lg border bg-background p-4 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
+				<p className="text-sm">Install this app for quick access.</p>
+				<Button size="sm" className="shrink-0" onClick={handleInstallClick}>
+					Install
+				</Button>
+			</div>
+		);
+	}
+
 	return null;
 }

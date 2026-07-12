@@ -1,9 +1,8 @@
 import { cacheLife, cacheTag } from "next/cache";
+import BigMoon from "@/components/BigMoon";
+import MoonCarousel from "@/components/MoonCarousel";
 import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
 import { formatDateTime } from "@/lib/utils";
-
-import MoonCarousel from "@/components/MoonCarousel";
-import BigMoon from "@/components/BigMoon";
 
 export default async function MoonHairDashboard() {
 	"use cache";

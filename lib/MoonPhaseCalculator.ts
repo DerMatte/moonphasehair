@@ -1,5 +1,9 @@
+import {
+	MoonPhase,
+	SearchMoonPhase,
+	SearchMoonQuarter,
+} from "astronomy-engine";
 import { moonPhases } from "@/lib/consts";
-import { MoonPhase, SearchMoonPhase, SearchMoonQuarter } from "astronomy-engine";
 
 export type MoonPhaseData = ReturnType<typeof getMoonPhaseWithTiming>;
 
@@ -26,7 +30,9 @@ function searchPhaseAngle(
 
 // Phase index 0-7 from the true ecliptic phase angle
 export function getMoonPhase(date: Date): number {
-	return Math.floor(normalizeAngle(MoonPhase(date) + HALF_SPAN) / PHASE_SPAN) % 8;
+	return (
+		Math.floor(normalizeAngle(MoonPhase(date) + HALF_SPAN) / PHASE_SPAN) % 8
+	);
 }
 
 // Fraction 0-1 through the cycle, based on the true phase angle
@@ -120,7 +126,12 @@ export function getMoonPhaseWithTiming(date: Date = new Date()) {
 export function getNextMajorPhase(
 	fromDate: Date = new Date(),
 ): { phase: string; date: Date } | null {
-	const quarterNames = ["New Moon", "First Quarter", "Full Moon", "Last Quarter"];
+	const quarterNames = [
+		"New Moon",
+		"First Quarter",
+		"Full Moon",
+		"Last Quarter",
+	];
 	const quarter = SearchMoonQuarter(fromDate);
 	return { phase: quarterNames[quarter.quarter], date: quarter.time.date };
 }

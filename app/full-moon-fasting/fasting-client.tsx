@@ -1,6 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId } from "react";
+import type { User } from "@supabase/supabase-js";
+import { Bell, BellOff, CheckCircle2, Timer } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useId, useState } from "react";
+import { toast } from "sonner";
+import { sendNotification } from "@/app/actions";
+import {
+	getCurrentFasting,
+	getFastingSubscriptionStatus,
+	startFasting,
+	stopFasting,
+	subscribeFastingNotifications,
+	unsubscribeFastingNotifications,
+	updateFasting,
+} from "@/app/actions/fasting";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -8,29 +24,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bell, BellOff, Timer, CheckCircle2 } from "lucide-react";
-import {
-	startFasting,
-	stopFasting,
-	updateFasting,
-	getCurrentFasting,
-	subscribeFastingNotifications,
-	unsubscribeFastingNotifications,
-	getFastingSubscriptionStatus,
-} from "@/app/actions/fasting";
-import { sendNotification } from "@/app/actions";
-import { toast } from "sonner";
-import { cn, formatDateTime } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
+import { cn, formatDateTime } from "@/lib/utils";
 
 interface FastingClientProps {
-	currentPhase: string;
 	nextFullMoon: string | null;
 }
 
@@ -44,10 +43,7 @@ type FastingState = {
 	scheduled: boolean;
 };
 
-export default function FastingClient({
-	currentPhase,
-	nextFullMoon,
-}: FastingClientProps) {
+export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 	const [fastDuration, setFastDuration] = useState<FastDuration>(24);
 	const [fastingState, setFastingState] = useState<FastingState>({
 		isActive: false,
@@ -77,28 +73,28 @@ export default function FastingClient({
 			} = await supabase.auth.getUser();
 			setUser(user);
 
-		if (user) {
-			const [fastingResult, subscriptionResult] = await Promise.all([
-				getCurrentFasting(),
-				getFastingSubscriptionStatus(),
-			]);
+			if (user) {
+				const [fastingResult, subscriptionResult] = await Promise.all([
+					getCurrentFasting(),
+					getFastingSubscriptionStatus(),
+				]);
 
-			if (fastingResult.success && fastingResult.data) {
-				const dbFast = fastingResult.data;
-				setFastingState({
-					id: dbFast.id,
-					isActive: dbFast.is_active,
-					startTime: dbFast.start_time,
-					endTime: dbFast.end_time,
-					duration: (dbFast.duration || 24) as FastDuration,
-					scheduled: dbFast.scheduled,
-				});
-			}
+				if (fastingResult.success && fastingResult.data) {
+					const dbFast = fastingResult.data;
+					setFastingState({
+						id: dbFast.id,
+						isActive: dbFast.is_active,
+						startTime: dbFast.start_time,
+						endTime: dbFast.end_time,
+						duration: (dbFast.duration || 24) as FastDuration,
+						scheduled: dbFast.scheduled,
+					});
+				}
 
-			if (subscriptionResult.success) {
-				setIsSubscribedToNotifications(subscriptionResult.subscribed);
+				if (subscriptionResult.success) {
+					setIsSubscribedToNotifications(subscriptionResult.subscribed);
+				}
 			}
-		}
 		};
 
 		initializeData();
@@ -106,7 +102,7 @@ export default function FastingClient({
 		// Listen for auth changes
 		const {
 			data: { subscription: authSubscription },
-		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+			// biome-ignore lint/suspicious/noExplicitAny: Supabase types
 		} = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
 			setUser(session?.user ?? null);
 			if (session?.user) {
@@ -487,7 +483,7 @@ export default function FastingClient({
 	};
 
 	const fastingTimes = calculateFastingTimes(fastDuration);
-	
+
 	// Generate unique IDs for form elements
 	const fastId24 = useId();
 	const fastId48 = useId();
@@ -557,7 +553,10 @@ export default function FastingClient({
 									<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
 										<div className="grid gap-3 grid-cols-[auto_1fr] items-start">
 											<RadioGroupItem value="24" id={fastId24} />
-											<Label htmlFor={fastId24} className="cursor-pointer grid gap-1">
+											<Label
+												htmlFor={fastId24}
+												className="cursor-pointer grid gap-1"
+											>
 												<div className="font-medium">24 Hour Fast</div>
 												<div className="text-sm text-muted-foreground">
 													12h before to 12h after
@@ -566,7 +565,10 @@ export default function FastingClient({
 										</div>
 										<div className="grid gap-3 grid-cols-[auto_1fr] items-start">
 											<RadioGroupItem value="48" id={fastId48} />
-											<Label htmlFor={fastId48} className="cursor-pointer grid gap-1">
+											<Label
+												htmlFor={fastId48}
+												className="cursor-pointer grid gap-1"
+											>
 												<div className="font-medium">48 Hour Fast</div>
 												<div className="text-sm text-muted-foreground">
 													24h before to 24h after
@@ -575,7 +577,10 @@ export default function FastingClient({
 										</div>
 										<div className="grid gap-3 grid-cols-[auto_1fr] items-start">
 											<RadioGroupItem value="72" id={fastId72} />
-											<Label htmlFor={fastId72} className="cursor-pointer grid gap-1">
+											<Label
+												htmlFor={fastId72}
+												className="cursor-pointer grid gap-1"
+											>
 												<div className="font-medium">72 Hour Fast</div>
 												<div className="text-sm text-muted-foreground">
 													36h before to 36h after
@@ -671,7 +676,9 @@ export default function FastingClient({
 													<Bell className="w-5 h-5" />
 												)}
 												<span className="sm:hidden">
-													{isSubscribedToNotifications ? "Notifications Off" : "Notifications On"}
+													{isSubscribedToNotifications
+														? "Notifications Off"
+														: "Notifications On"}
 												</span>
 											</div>
 										</Button>
@@ -690,24 +697,31 @@ export default function FastingClient({
 							<div className="grid gap-3">
 								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
 									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-									<p className="text-sm">JUST STOP EATING. No Calories. No Coffee. No Tea.</p>
-								</div>
-								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
-									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
 									<p className="text-sm">
-										Drink lots of water at least 4l. Bonus: add celtic sea salt + lemon juice.
+										JUST STOP EATING. No Calories. No Coffee. No Tea.
 									</p>
 								</div>
 								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
 									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
 									<p className="text-sm">
-										Autogaphy starts at 24h. This is where your body starts to regenerate cells. Hour 36 – 48 is the hardest. After 72+ you completely loose your hunger.
+										Drink lots of water at least 4l. Bonus: add celtic sea salt
+										+ lemon juice.
 									</p>
 								</div>
 								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
 									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
 									<p className="text-sm">
-										Break your fast with bone broth or soup. HALF the length of the fast = the length of time you should take to reactivate digestion
+										Autogaphy starts at 24h. This is where your body starts to
+										regenerate cells. Hour 36 – 48 is the hardest. After 72+ you
+										completely loose your hunger.
+									</p>
+								</div>
+								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
+									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+									<p className="text-sm">
+										Break your fast with bone broth or soup. HALF the length of
+										the fast = the length of time you should take to reactivate
+										digestion
 									</p>
 								</div>
 							</div>

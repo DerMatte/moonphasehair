@@ -1,7 +1,7 @@
 import { Pin } from "@nsmr/pixelart-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { type LocationData } from "./index";
+import type { LocationData } from "./index";
 
 export default async function LocationInfo({
 	locationData,

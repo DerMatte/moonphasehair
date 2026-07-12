@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
+import { createClient } from "@/lib/supabase/server";
 
 function LoginSkeleton() {
 	return (

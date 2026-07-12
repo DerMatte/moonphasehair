@@ -1,6 +1,6 @@
-import webpush from "web-push";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import webpush from "web-push";
 
 function getVapidConfig() {
 	const vapidEmail = process.env.VAPID_EMAIL;
@@ -15,7 +15,9 @@ function getVapidConfig() {
 }
 
 export async function POST(request: NextRequest) {
-	if (request.headers.get("Authorization") !== `Bearer ${process.env.API_SECRET}`) {
+	if (
+		request.headers.get("Authorization") !== `Bearer ${process.env.API_SECRET}`
+	) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 	try {
@@ -25,10 +27,17 @@ export async function POST(request: NextRequest) {
 
 		// Validate required fields
 		if (!subscription || !title || !body) {
-			console.error("Missing required fields:", { subscription: !!subscription, title: !!title, body: !!body });
+			console.error("Missing required fields:", {
+				subscription: !!subscription,
+				title: !!title,
+				body: !!body,
+			});
 			return NextResponse.json(
-				{ success: false, error: "Missing required fields: subscription, title, or body" },
-				{ status: 400 }
+				{
+					success: false,
+					error: "Missing required fields: subscription, title, or body",
+				},
+				{ status: 400 },
 			);
 		}
 
@@ -38,18 +47,23 @@ export async function POST(request: NextRequest) {
 			vapidPrivateKey,
 		);
 
-		console.log("Sending notification:", { title, body, url, endpoint: subscription.endpoint?.substring(0, 50) + "..." });
+		console.log("Sending notification:", {
+			title,
+			body,
+			url,
+			endpoint: subscription.endpoint?.substring(0, 50) + "...",
+		});
 
 		await webpush.sendNotification(
 			subscription,
-			JSON.stringify({ 
-				title, 
-				body, 
+			JSON.stringify({
+				title,
+				body,
 				icon: "/favicon.ico",
 				badge: "/favicon.ico",
 				url: url || "/",
 				tag: "moon-phase-reminder",
-				requireInteraction: true
+				requireInteraction: true,
 			}),
 		);
 
@@ -57,16 +71,21 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ success: true });
 	} catch (error) {
 		console.error("Error sending push notification:", error);
-		
+
 		// Provide more detailed error information
-		const errorMessage = error instanceof Error ? error.message : "Unknown error";
-		const errorCode = (error as { statusCode?: number })?.statusCode || "UNKNOWN";
-		
-		return NextResponse.json({ 
-			success: false, 
-			error: "Failed to send notification",
-			details: errorMessage,
-			code: errorCode
-		}, { status: 500 });
+		const errorMessage =
+			error instanceof Error ? error.message : "Unknown error";
+		const errorCode =
+			(error as { statusCode?: number })?.statusCode || "UNKNOWN";
+
+		return NextResponse.json(
+			{
+				success: false,
+				error: "Failed to send notification",
+				details: errorMessage,
+				code: errorCode,
+			},
+			{ status: 500 },
+		);
 	}
 }

@@ -1,5 +1,8 @@
 "use client";
 
+import { InfoBox } from "@nsmr/pixelart-react";
+import { track } from "@vercel/analytics";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -11,11 +14,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { track } from "@vercel/analytics";
-
 import InfoPicture from "@/public/Moon-Hair.png";
-import Image from "next/image";
-import { InfoBox } from "@nsmr/pixelart-react";
 
 export function InfoButton() {
 	return (

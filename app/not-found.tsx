@@ -1,6 +1,6 @@
-import { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import Yue from "@/public/yue.png";
 

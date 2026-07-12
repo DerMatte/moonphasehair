@@ -1,5 +1,8 @@
 import { geolocation } from "@vercel/functions";
-import { getMoonLimbAngle, getMoonRotationDegrees } from "@/lib/moonOrientation";
+import {
+	getMoonLimbAngle,
+	getMoonRotationDegrees,
+} from "@/lib/moonOrientation";
 
 // Munich fallback keeps the rotation meaningful in local dev and when
 // geo headers are missing

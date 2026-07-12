@@ -1,8 +1,8 @@
 "use client";
 
-import { Navbar } from "./Navbar";
-import type { LocationData } from "./index";
 import type { User } from "@supabase/supabase-js";
+import type { LocationData } from "./index";
+import { Navbar } from "./Navbar";
 
 interface NavbarWrapperProps {
 	locationData: LocationData | null;

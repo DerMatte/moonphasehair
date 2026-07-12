@@ -1,7 +1,7 @@
-import { ImageResponse } from "next/og";
-import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { ImageResponse } from "next/og";
+import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
 
 // Image metadata
 export const alt = "Current Moon Phase for Hair Care";

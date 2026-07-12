@@ -1,7 +1,7 @@
+import { headers } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import LocationInfo from "./LocationInfo";
 import { NavbarWrapper } from "./NavbarWrapper";
-import { createClient } from "@/lib/supabase/server";
-import { headers } from "next/headers";
 
 export interface LocationData {
 	city: string;

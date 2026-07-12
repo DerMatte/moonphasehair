@@ -1,30 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-	subscribeUser,
-	unsubscribeUser,
-	sendNotification,
-} from "@/app/actions";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import {
 	Accordion,
+	AccordionContent,
 	AccordionItem,
 	AccordionTrigger,
-	AccordionContent,
 } from "@radix-ui/react-accordion";
-import { ChevronDown } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
+import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+	sendNotification,
+	subscribeUser,
+	unsubscribeUser,
+} from "@/app/actions";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
 
 export default function PushNotificationManager() {
 	const [isSupported, setIsSupported] = useState(false);
@@ -46,7 +40,7 @@ export default function PushNotificationManager() {
 		// Listen for auth changes
 		const {
 			data: { subscription: authSubscription },
-		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
+			// biome-ignore lint/suspicious/noExplicitAny: Supabase types
 		} = supabase.auth.onAuthStateChange((_event: any, session: any) => {
 			setUser(session?.user ?? null);
 		});

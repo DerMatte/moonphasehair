@@ -1,9 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import UserSubscriptions from "@/components/UserSubscriptions";
-import { User } from "lucide-react";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
 
 async function ProfileContent() {
 	const supabase = await createClient();
@@ -21,9 +20,7 @@ async function ProfileContent() {
 				{/* Page Header */}
 				<div className="text-center mb-8 md:col-span-2">
 					<div className="flex items-center justify-center gap-3 mb-4">
-						<h1 className="text-3xl font-bold">
-							Your Profile
-						</h1>
+						<h1 className="text-3xl font-bold">Your Profile</h1>
 					</div>
 					<p className="text-neutral-600 max-w-2xl mx-auto">
 						Manage your moon phase notifications and account settings

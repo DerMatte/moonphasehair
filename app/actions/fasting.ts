@@ -28,7 +28,7 @@ export async function startFasting(
 	startTime: string,
 	endTime: string,
 	duration: number,
-	scheduled: boolean = false
+	scheduled: boolean = false,
 ): Promise<FastingState> {
 	try {
 		const supabase = await createClient();
@@ -44,7 +44,10 @@ export async function startFasting(
 
 		// Validate duration
 		if (![24, 48, 72].includes(duration)) {
-			return { success: false, error: "Invalid duration. Must be 24, 48, or 72 hours" };
+			return {
+				success: false,
+				error: "Invalid duration. Must be 24, 48, or 72 hours",
+			};
 		}
 
 		// Check if user already has an active or scheduled fast
@@ -61,9 +64,11 @@ export async function startFasting(
 		}
 
 		if (existingFast) {
-			return { 
-				success: false, 
-				error: existingFast.is_active ? "You already have an active fast" : "You already have a scheduled fast" 
+			return {
+				success: false,
+				error: existingFast.is_active
+					? "You already have an active fast"
+					: "You already have a scheduled fast",
 			};
 		}
 
@@ -101,7 +106,7 @@ export async function updateFasting(
 		scheduled?: boolean;
 		start_time?: string;
 		end_time?: string;
-	}
+	},
 ): Promise<FastingState> {
 	try {
 		const supabase = await createClient();
@@ -153,10 +158,7 @@ export async function stopFasting(fastingId?: string): Promise<FastingState> {
 			return { success: false, error: "Authentication required" };
 		}
 
-		let query = supabase
-			.from("fasting_states")
-			.delete()
-			.eq("user_id", user.id);
+		let query = supabase.from("fasting_states").delete().eq("user_id", user.id);
 
 		if (fastingId) {
 			query = query.eq("id", fastingId);
@@ -220,7 +222,7 @@ export async function getCurrentFasting(): Promise<FastingState> {
 // Subscribe to fasting notifications
 export async function subscribeFastingNotifications(
 	subscriptionData: PushSubscriptionJSON,
-	nextFullMoon: string
+	nextFullMoon: string,
 ): Promise<FastingSubscriptionState> {
 	try {
 		const supabase = await createClient();
@@ -238,7 +240,8 @@ export async function subscribeFastingNotifications(
 		if (!subscriptionData?.endpoint || !nextFullMoon) {
 			return {
 				success: false,
-				error: "Missing required fields: subscription endpoint or next full moon date",
+				error:
+					"Missing required fields: subscription endpoint or next full moon date",
 			};
 		}
 
@@ -275,7 +278,7 @@ export async function subscribeFastingNotifications(
 
 // Unsubscribe from fasting notifications
 export async function unsubscribeFastingNotifications(
-	endpoint: string
+	endpoint: string,
 ): Promise<FastingSubscriptionState> {
 	try {
 		const supabase = await createClient();
@@ -324,7 +327,11 @@ export async function getFastingSubscriptionStatus(): Promise<{
 			error: authError,
 		} = await supabase.auth.getUser();
 		if (authError || !user) {
-			return { success: false, subscribed: false, error: "Authentication required" };
+			return {
+				success: false,
+				subscribed: false,
+				error: "Authentication required",
+			};
 		}
 
 		// Check if user has an active fasting subscription
@@ -338,12 +345,20 @@ export async function getFastingSubscriptionStatus(): Promise<{
 		if (error && error.code !== "PGRST116") {
 			// PGRST116 is "not found" error, which is expected when no subscription exists
 			console.error("Error checking fasting subscription status:", error);
-			return { success: false, subscribed: false, error: "Failed to check subscription status" };
+			return {
+				success: false,
+				subscribed: false,
+				error: "Failed to check subscription status",
+			};
 		}
 
 		return { success: true, subscribed: !!data };
 	} catch (error) {
 		console.error("Error checking fasting subscription status:", error);
-		return { success: false, subscribed: false, error: "Failed to check subscription status" };
+		return {
+			success: false,
+			subscribed: false,
+			error: "Failed to check subscription status",
+		};
 	}
 }

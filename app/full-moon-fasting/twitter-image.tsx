@@ -1,10 +1,10 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import {
 	getMoonPhaseWithTiming,
 	getNextMoonPhaseOccurrence,
 } from "@/lib/MoonPhaseCalculator";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 // Image metadata
 export const alt = "Full Moon Fasting - Moonphase Hair";
@@ -18,12 +18,6 @@ export const contentType = "image/png";
 export default async function Image() {
 	const moonData = getMoonPhaseWithTiming(new Date());
 	const currentPhase = moonData.current;
-	const currentDate = new Date().toLocaleDateString("en-US", {
-		weekday: "long",
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	});
 
 	const nextFullMoon = getNextMoonPhaseOccurrence("Full Moon", new Date());
 
