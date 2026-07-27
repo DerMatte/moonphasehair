@@ -33,7 +33,8 @@ CRON_SECRET=your_cron_secret
 
 1. Go to your Supabase dashboard
 2. Navigate to the SQL Editor
-3. Run the migration script located at `/workspace/supabase/migrations/001_update_subscriptions_for_auth.sql`
+3. Apply the tracked SQL files in `supabase/migrations/` in numeric order to
+   the existing project.
 
 ## Authentication Setup
 

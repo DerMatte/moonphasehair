@@ -10,12 +10,16 @@ export default async function LocationInfo({
 }) {
 	const displayLocation =
 		locationData?.city && locationData.city !== locationData.country
-			? `${locationData.city}, ${locationData.country}`
-			: locationData?.country;
+			? [locationData.city, locationData.country].filter(Boolean).join(", ")
+			: locationData?.country || locationData?.city || null;
+
+	if (!displayLocation) {
+		return null;
+	}
 
 	return (
 		<div className="hidden md:inline-flex items-center gap-2 text-sm text-neutral-600 whitespace-nowrap">
-			<Pin size={32} />
+			<Pin size={32} aria-hidden="true" />
 			<span
 				className={cn(
 					"hidden sm:block",

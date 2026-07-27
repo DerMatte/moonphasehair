@@ -72,7 +72,7 @@ export default function InstallPrompt() {
 					onClick={handleCloseIOSPrompt}
 					aria-label="Dismiss"
 				>
-					<X className="h-4 w-4" />
+					<X className="h-4 w-4" aria-hidden="true" />
 				</Button>
 			</div>
 		);

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 
 export function createAdminClient() {
 	const supabaseUrl =
@@ -10,7 +11,7 @@ export function createAdminClient() {
 		throw new Error("Supabase admin credentials are not configured");
 	}
 
-	return createClient(supabaseUrl, supabaseSecret, {
+	return createClient<Database>(supabaseUrl, supabaseSecret, {
 		auth: {
 			autoRefreshToken: false,
 			persistSession: false,

@@ -1,19 +1,28 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
 	"vcs": {
-		"enabled": false,
+		"enabled": true,
 		"clientKind": "git",
-		"useIgnoreFile": false
+		"useIgnoreFile": true
 	},
 	"files": {
 		"ignoreUnknown": false,
 		"includes": [
-			"**",
-			"!**/dist",
-			"!**/node_modules",
-			"!**/.next",
-			"!**/public",
-			"!**/build",
+			"app/**/*.{ts,tsx}",
+			"components/**/*.{ts,tsx}",
+			"hooks/**/*.{ts,tsx}",
+			"lib/**/*.{ts,tsx}",
+			"public/sw.js",
+			"tests/**/*.mjs",
+			"biome.json",
+			"components.json",
+			"images.d.ts",
+			"next.config.ts",
+			"package.json",
+			"postcss.config.mjs",
+			"proxy.ts",
+			"tsconfig.json",
+			"vercel.json",
 			"!**/*.gen.ts",
 			"!**/globals.css"
 		]
@@ -25,7 +34,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"preset": "recommended",
+			"suspicious": {
+				"noControlCharactersInRegex": "off"
+			}
 		}
 	},
 	"javascript": {
@@ -34,11 +46,6 @@
 		}
 	},
 	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
+		"enabled": false
 	}
 }

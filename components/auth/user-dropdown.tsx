@@ -1,10 +1,9 @@
 "use client";
 
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { Bell, BellOff, LogOut, User } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,17 +24,6 @@ interface UserDropdownProps {
 export function UserDropdown({ user }: UserDropdownProps) {
 	const router = useRouter();
 	const supabase = createClient();
-	const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-
-	useEffect(() => {
-		// Check if notifications are enabled
-		const checkNotificationStatus = async () => {
-			if ("Notification" in window) {
-				setNotificationsEnabled(Notification.permission === "granted");
-			}
-		};
-		checkNotificationStatus();
-	}, []);
 
 	const handleSignOut = async () => {
 		const { error } = await supabase.auth.signOut();
@@ -44,21 +32,6 @@ export function UserDropdown({ user }: UserDropdownProps) {
 		} else {
 			router.push("/");
 			router.refresh();
-		}
-	};
-
-	const toggleNotifications = async () => {
-		if (!notificationsEnabled && "Notification" in window) {
-			const permission = await Notification.requestPermission();
-			if (permission === "granted") {
-				setNotificationsEnabled(true);
-				toast.success("Notifications enabled");
-			} else {
-				toast.error("Notification permission denied");
-			}
-		} else {
-			setNotificationsEnabled(false);
-			toast.info("Notifications disabled");
 		}
 	};
 
@@ -76,12 +49,14 @@ export function UserDropdown({ user }: UserDropdownProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="icon" className="rounded-full">
+				<Button
+					variant="ghost"
+					size="icon"
+					className="rounded-full"
+					aria-label="Open account menu"
+				>
 					<Avatar className="h-8 w-8 rounded-full">
-						<AvatarImage
-							src={user.user_metadata?.avatar_url}
-							alt={user.user_metadata?.full_name || "User"}
-						/>
+						<AvatarImage src={user.user_metadata?.avatar_url} alt="" />
 						<AvatarFallback>{getUserInitials()}</AvatarFallback>
 					</Avatar>
 				</Button>
@@ -98,35 +73,34 @@ export function UserDropdown({ user }: UserDropdownProps) {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem className="hover:bg-neutral-200 w-full cursor-pointer">
+				<DropdownMenuItem
+					asChild
+					className="hover:bg-neutral-200 w-full cursor-pointer"
+				>
 					<Link href="/profile" className="flex items-center gap-2">
-						<User className="mr-2 h-4 w-4" />
+						<User className="mr-2 h-4 w-4" aria-hidden="true" />
 						Profile
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
-					onClick={toggleNotifications}
-					className="hover:bg-neutral-200 cursor-pointer"
+					asChild
+					className="hover:bg-neutral-200 w-full cursor-pointer"
 				>
-					{notificationsEnabled ? (
-						<>
-							<BellOff className="mr-2 h-4 w-4" />
-							Disable Notifications
-						</>
-					) : (
-						<>
-							<Bell className="mr-2 h-4 w-4" />
-							Enable Notifications
-						</>
-					)}
+					<Link
+						href="/profile#notification-settings"
+						className="flex items-center gap-2"
+					>
+						<Bell className="mr-2 h-4 w-4" aria-hidden="true" />
+						Manage Notifications
+					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={handleSignOut}
 					className="hover:bg-neutral-200 cursor-pointer"
 				>
-					<LogOut className="mr-2 h-4 w-4" />
+					<LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
 					Sign Out
 				</DropdownMenuItem>
 			</DropdownMenuContent>

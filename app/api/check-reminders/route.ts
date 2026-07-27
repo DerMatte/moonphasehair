@@ -4,179 +4,253 @@ import {
 	getMoonPhaseWithTiming,
 	getNextMoonPhaseOccurrence,
 } from "@/lib/MoonPhaseCalculator";
-import { createClient } from "@/lib/supabase/server";
+import {
+	getPushErrorStatus,
+	parseStoredPushSubscription,
+	sendPushNotification,
+} from "@/lib/notifications/push.server";
+import type { NotificationPayload } from "@/lib/notifications/templates";
+import { getNotificationRetryDelayMs } from "@/lib/reminders/retry";
+import { hasValidBearerToken } from "@/lib/security/bearer";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+const BATCH_SIZE = 50;
+const CLAIM_LEASE_SECONDS = 15 * 60;
+
+type ClaimedDelivery = {
+	delivery_id: string;
+	subscription_id: string;
+	subscription_type: "hair" | "fasting";
+	subscription_data: unknown;
+	target_phase: string;
+	scheduled_for: string;
+	attempt_count: number;
+};
+
+function isClaimedDelivery(value: unknown): value is ClaimedDelivery {
+	if (!value || typeof value !== "object") {
+		return false;
+	}
+
+	const delivery = value as Record<string, unknown>;
+	return (
+		typeof delivery.delivery_id === "string" &&
+		typeof delivery.subscription_id === "string" &&
+		(delivery.subscription_type === "hair" ||
+			delivery.subscription_type === "fasting") &&
+		typeof delivery.target_phase === "string" &&
+		typeof delivery.scheduled_for === "string" &&
+		typeof delivery.attempt_count === "number"
+	);
+}
+
+function buildReminderPayload(
+	delivery: ClaimedDelivery,
+	action: string | undefined,
+): NotificationPayload {
+	if (delivery.subscription_type === "fasting") {
+		return {
+			title: "Full Moon Fasting Time! 🌙",
+			body: `The Full Moon has arrived - perfect time for your fasting practice! ${action || "Time to cleanse and reset."}`,
+			url: "/full-moon-fasting",
+			tag: `moon-reminder-${delivery.delivery_id}`,
+			requireInteraction: true,
+		};
+	}
+
+	return {
+		title: `${delivery.target_phase} Moon Phase is Here! 🌙`,
+		body: `It's time for your ${delivery.target_phase} moon phase reminder. ${action || "Perfect time for your moon-aligned activities!"}`,
+		url: "/",
+		tag: `moon-reminder-${delivery.delivery_id}`,
+		requireInteraction: true,
+	};
+}
 
 export async function GET(request: NextRequest) {
-	// Verify cron secret for security
-	if (
-		request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`
-	) {
-		console.error("Unauthorized cron job attempt");
+	const cronSecret = process.env.CRON_SECRET;
+	if (!cronSecret) {
+		return NextResponse.json(
+			{ error: "Reminder cron is not configured" },
+			{ status: 503 },
+		);
+	}
+
+	if (!hasValidBearerToken(request.headers.get("Authorization"), cronSecret)) {
+		console.error("Unauthorized reminder cron attempt");
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	const supabase = await createClient();
-	const today = new Date();
+	const now = new Date();
+	const supabase = createAdminClient();
+	const { data: claimedRows, error: claimError } = await supabase.rpc(
+		"claim_due_notifications",
+		{
+			p_now: now.toISOString(),
+			p_limit: BATCH_SIZE,
+			p_lease_seconds: CLAIM_LEASE_SECONDS,
+		},
+	);
 
-	console.log(`🌙 Checking moon phase reminders at ${today.toISOString()}`);
-
-	// Get all subscriptions (both hair and fasting) that are due for checking
-	const { data: subscriptions, error } = await supabase
-		.from("subscriptions")
-		.select("*")
-		.eq("subscription_type", "hair")
-		.lte("next_date", today.toISOString());
-
-	const { data: fastingSubscriptions, error: fastingError } = await supabase
-		.from("subscriptions")
-		.select("*")
-		.eq("subscription_type", "fasting")
-		.lte("next_date", today.toISOString());
-
-	if (fastingError) {
-		console.error("Error fetching fasting subscriptions:", fastingError);
+	if (claimError) {
+		console.error("Unable to claim due reminders", {
+			code: claimError.code,
+		});
 		return NextResponse.json(
-			{ error: "Failed to fetch fasting subscriptions" },
-			{ status: 500 },
-		);
-	}
-	if (error) {
-		console.error("Error fetching subscriptions:", error);
-		return NextResponse.json(
-			{ error: "Failed to fetch subscriptions" },
+			{ error: "Failed to claim due reminders" },
 			{ status: 500 },
 		);
 	}
 
-	const allSubscriptions = [
-		...(subscriptions || []),
-		...(fastingSubscriptions || []),
-	];
+	const deliveries = Array.isArray(claimedRows)
+		? (claimedRows as unknown[]).filter(isClaimedDelivery)
+		: [];
+	const { current } = getMoonPhaseWithTiming(now);
+	const results: Array<Record<string, unknown>> = [];
 
-	console.log(`📋 Found ${allSubscriptions.length} subscriptions to check`);
+	for (const delivery of deliveries) {
+		const nextOccurrence = getNextMoonPhaseOccurrence(
+			delivery.target_phase,
+			now,
+		);
 
-	let notificationsSent = 0;
-	let subscriptionsUpdated = 0;
+		if (!nextOccurrence) {
+			await recordFailure(
+				supabase,
+				delivery,
+				now,
+				"Unable to calculate next occurrence",
+			);
+			results.push({
+				deliveryId: delivery.delivery_id,
+				status: "failed",
+				reason: "invalid_phase",
+			});
+			continue;
+		}
 
-	for (const subscription of allSubscriptions) {
-		const reminderDate = new Date(subscription.next_date);
+		if (current.name !== delivery.target_phase) {
+			const { error } = await supabase.rpc("complete_notification_delivery", {
+				p_delivery_id: delivery.delivery_id,
+				p_next_date: nextOccurrence.toISOString(),
+				p_outcome: "skipped",
+			});
+			results.push({
+				deliveryId: delivery.delivery_id,
+				status: error ? "failed" : "skipped",
+				...(error ? { reason: "completion_write_failed" } : {}),
+			});
+			continue;
+		}
 
-		// Check if we've reached the reminder date
-		if (reminderDate <= today) {
-			const { current } = getMoonPhaseWithTiming(today);
+		const subscription = parseStoredPushSubscription(
+			delivery.subscription_data,
+		);
+		if (!subscription) {
+			await recordFailure(
+				supabase,
+				delivery,
+				now,
+				"Stored push subscription is invalid",
+			);
+			results.push({
+				deliveryId: delivery.delivery_id,
+				status: "failed",
+				reason: "invalid_subscription",
+			});
+			continue;
+		}
 
-			// Check if the current phase matches the target phase
-			if (current.name === subscription.target_phase) {
-				console.log(
-					`🌙 ${subscription.target_phase} phase detected! Sending ${subscription.subscription_type} notification...`,
-				);
+		try {
+			await sendPushNotification(
+				subscription,
+				buildReminderPayload(delivery, current.action),
+			);
 
-				// Customize notification based on subscription type
-				const notificationTitle =
-					subscription.subscription_type === "fasting"
-						? `Full Moon Fasting Time! 🌙`
-						: `${subscription.target_phase} Moon Phase is Here! 🌙`;
+			const { error: completeError } = await supabase.rpc(
+				"complete_notification_delivery",
+				{
+					p_delivery_id: delivery.delivery_id,
+					p_next_date: nextOccurrence.toISOString(),
+					p_outcome: "sent",
+				},
+			);
 
-				const notificationBody =
-					subscription.subscription_type === "fasting"
-						? `The Full Moon has arrived - perfect time for your fasting practice! ${current.action || "Time to cleanse and reset."}`
-						: `It's time for your ${current.name} moon phase reminder. ${current.action || "Perfect time for your moon-aligned activities!"}`;
-
-				const notificationUrl =
-					subscription.subscription_type === "fasting"
-						? "/full-moon-fasting"
-						: "/";
-
-				// Send notification - target phase has arrived!
-				const notificationResponse = await fetch(
-					`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"}/api/send-notification`,
-					{
-						method: "POST",
-						body: JSON.stringify({
-							subscription: subscription.subscription_data,
-							title: notificationTitle,
-							body: notificationBody,
-							url: notificationUrl,
-						}),
-						headers: { "Content-Type": "application/json" },
-					},
-				);
-
-				if (!notificationResponse.ok) {
-					const errorText = await notificationResponse.text();
-					console.error(
-						`❌ Failed to send notification for ${subscription.target_phase}:`,
-						errorText,
-					);
-				} else {
-					console.log(
-						`✅ Notification sent successfully for ${subscription.target_phase}`,
-					);
-					notificationsSent++;
-				}
-
-				// Calculate next occurrence for continuous notifications
-				const nextOccurrence = getNextMoonPhaseOccurrence(
-					subscription.target_phase,
-					today,
-				);
-
-				if (nextOccurrence) {
-					// Update the subscription with the new date
-					const { error: updateError } = await supabase
-						.from("subscriptions")
-						.update({ next_date: nextOccurrence.toISOString() })
-						.eq("id", subscription.id);
-
-					if (updateError) {
-						console.error(
-							`❌ Error updating subscription for ${subscription.target_phase}:`,
-							updateError,
-						);
-					} else {
-						console.log(
-							`📅 Updated ${subscription.target_phase} subscription to next occurrence: ${nextOccurrence.toISOString()}`,
-						);
-						subscriptionsUpdated++;
-					}
-				}
+			if (completeError) {
+				console.error("Reminder sent but completion could not be recorded", {
+					deliveryId: delivery.delivery_id,
+					code: completeError.code,
+				});
+				results.push({
+					deliveryId: delivery.delivery_id,
+					status: "failed",
+					reason: "completion_write_failed",
+				});
 			} else {
-				// If we've passed the date but phase doesn't match, recalculate
-				const nextOccurrence = getNextMoonPhaseOccurrence(
-					subscription.target_phase,
-					today,
-				);
-				if (nextOccurrence) {
-					// Update the subscription with the new date
-					const { error: updateError } = await supabase
-						.from("subscriptions")
-						.update({ next_date: nextOccurrence.toISOString() })
-						.eq("id", subscription.id);
-
-					if (updateError) {
-						console.error(
-							`❌ Error recalculating subscription for ${subscription.target_phase}:`,
-							updateError,
-						);
-					} else {
-						console.log(
-							`🔄 Recalculated ${subscription.target_phase} subscription to: ${nextOccurrence.toISOString()}`,
-						);
-						subscriptionsUpdated++;
-					}
-				}
+				results.push({
+					deliveryId: delivery.delivery_id,
+					status: "sent",
+				});
 			}
+		} catch (error) {
+			const statusCode = getPushErrorStatus(error);
+			if (statusCode === 404 || statusCode === 410) {
+				const { error: deleteError } = await supabase
+					.from("subscriptions")
+					.delete()
+					.eq("id", delivery.subscription_id);
+				results.push({
+					deliveryId: delivery.delivery_id,
+					status: deleteError ? "failed" : "expired",
+					...(deleteError ? { reason: "subscription_cleanup_failed" } : {}),
+				});
+				continue;
+			}
+
+			await recordFailure(supabase, delivery, now, "Push delivery failed");
+			console.error("Push reminder delivery failed", {
+				deliveryId: delivery.delivery_id,
+				statusCode,
+			});
+			results.push({
+				deliveryId: delivery.delivery_id,
+				status: "failed",
+				reason: "push_delivery_failed",
+			});
 		}
 	}
 
-	console.log(
-		`✅ Cron job completed: ${notificationsSent} notifications sent, ${subscriptionsUpdated} subscriptions updated`,
+	const failed = results.filter((result) => result.status === "failed").length;
+	return NextResponse.json(
+		{
+			status: failed > 0 ? "partial" : "processed",
+			claimed: deliveries.length,
+			failed,
+			results,
+		},
+		{ status: failed > 0 ? 502 : 200 },
 	);
+}
 
-	return NextResponse.json({
-		status: "checked",
-		count: allSubscriptions.length,
-		notificationsSent,
-		subscriptionsUpdated,
+async function recordFailure(
+	supabase: ReturnType<typeof createAdminClient>,
+	delivery: ClaimedDelivery,
+	now: Date,
+	message: string,
+) {
+	const retryAt = new Date(
+		now.getTime() + getNotificationRetryDelayMs(delivery.attempt_count),
+	);
+	const { error } = await supabase.rpc("fail_notification_delivery", {
+		p_delivery_id: delivery.delivery_id,
+		p_error: message,
+		p_retry_at: retryAt.toISOString(),
 	});
+
+	if (error) {
+		console.error("Unable to record reminder failure", {
+			deliveryId: delivery.delivery_id,
+			code: error.code,
+		});
+	}
 }

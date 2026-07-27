@@ -1,89 +1,80 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import webpush from "web-push";
-
-function getVapidConfig() {
-	const vapidEmail = process.env.VAPID_EMAIL;
-	const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-	const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-
-	if (!vapidEmail || !vapidPublicKey || !vapidPrivateKey) {
-		throw new Error("Missing VAPID environment variables");
-	}
-
-	return { vapidEmail, vapidPublicKey, vapidPrivateKey };
-}
+import {
+	isAllowedNotificationPath,
+	type NotificationPayload,
+} from "@/lib/notifications/templates";
+import {
+	getPushErrorStatus,
+	parseStoredPushSubscription,
+	sendPushNotification,
+} from "@/lib/notifications/push.server";
+import { hasValidBearerToken } from "@/lib/security/bearer";
 
 export async function POST(request: NextRequest) {
-	if (
-		request.headers.get("Authorization") !== `Bearer ${process.env.API_SECRET}`
-	) {
+	const apiSecret = process.env.API_SECRET;
+	if (!apiSecret) {
+		return NextResponse.json(
+			{ error: "Notification API is not configured" },
+			{ status: 503 },
+		);
+	}
+
+	if (!hasValidBearerToken(request.headers.get("Authorization"), apiSecret)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
+
 	try {
-		const { vapidEmail, vapidPublicKey, vapidPrivateKey } = getVapidConfig();
-
-		const { subscription, title, body, url } = await request.json();
-
-		// Validate required fields
-		if (!subscription || !title || !body) {
-			console.error("Missing required fields:", {
-				subscription: !!subscription,
-				title: !!title,
-				body: !!body,
-			});
+		const requestBody: unknown = await request.json();
+		if (!requestBody || typeof requestBody !== "object") {
 			return NextResponse.json(
-				{
-					success: false,
-					error: "Missing required fields: subscription, title, or body",
-				},
+				{ success: false, error: "Invalid notification request" },
 				{ status: 400 },
 			);
 		}
 
-		webpush.setVapidDetails(
-			`mailto:${vapidEmail}`,
-			vapidPublicKey,
-			vapidPrivateKey,
-		);
+		const body = requestBody as Record<string, unknown>;
+		const subscription = parseStoredPushSubscription(body.subscription);
+		const url = body.url ?? "/";
+		if (
+			!subscription ||
+			typeof body.title !== "string" ||
+			body.title.length < 1 ||
+			body.title.length > 120 ||
+			typeof body.body !== "string" ||
+			body.body.length < 1 ||
+			body.body.length > 500 ||
+			!isAllowedNotificationPath(url)
+		) {
+			return NextResponse.json(
+				{ success: false, error: "Invalid notification request" },
+				{ status: 400 },
+			);
+		}
 
-		console.log("Sending notification:", {
-			title,
-			body,
+		const payload: NotificationPayload = {
+			title: body.title,
+			body: body.body,
 			url,
-			endpoint: subscription.endpoint?.substring(0, 50) + "...",
-		});
+			tag:
+				typeof body.tag === "string" && body.tag.length <= 128
+					? body.tag
+					: "moon-phase-reminder",
+			requireInteraction: true,
+		};
 
-		await webpush.sendNotification(
-			subscription,
-			JSON.stringify({
-				title,
-				body,
-				icon: "/favicon.ico",
-				badge: "/favicon.ico",
-				url: url || "/",
-				tag: "moon-phase-reminder",
-				requireInteraction: true,
-			}),
-		);
+		await sendPushNotification(subscription, payload);
 
-		console.log("Notification sent successfully");
 		return NextResponse.json({ success: true });
 	} catch (error) {
-		console.error("Error sending push notification:", error);
-
-		// Provide more detailed error information
-		const errorMessage =
-			error instanceof Error ? error.message : "Unknown error";
-		const errorCode =
-			(error as { statusCode?: number })?.statusCode || "UNKNOWN";
+		console.error("Error sending push notification", {
+			statusCode: getPushErrorStatus(error),
+		});
 
 		return NextResponse.json(
 			{
 				success: false,
 				error: "Failed to send notification",
-				details: errorMessage,
-				code: errorCode,
 			},
 			{ status: 500 },
 		);

@@ -26,11 +26,16 @@ export default function NotFound() {
 				className={buttonVariants({
 					variant: "default",
 					className:
-						"items-center gap-2 bg-sky-800 text-neutral-100 px-6 py-3 rounded-lg hover:bg-sky-700 transition-all duration-200 hover:scale-105 group border border-sky-600",
+						"items-center gap-2 bg-sky-800 text-neutral-100 px-6 py-3 rounded-lg hover:bg-sky-700 transition-[background-color,transform] duration-200 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100 group border border-sky-600",
 				})}
 			>
 				Return to the Physical World
-				<span className="group-hover:animate-pulse">🌙</span>
+				<span
+					className="group-hover:animate-pulse motion-reduce:animate-none"
+					aria-hidden="true"
+				>
+					🌙
+				</span>
 			</Link>
 		</div>
 	);

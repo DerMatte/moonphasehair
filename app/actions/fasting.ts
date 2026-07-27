@@ -1,21 +1,13 @@
 "use server";
 
+import type { Tables } from "@/lib/database.types";
 import { createClient } from "@/lib/supabase/server";
+import { upsertOwnedSubscription } from "@/lib/subscriptions/upsert.server";
 
 export interface FastingState {
 	success: boolean;
 	error?: string;
-	data?: {
-		id: string;
-		user_id: string;
-		is_active: boolean;
-		start_time: string | null;
-		end_time: string | null;
-		duration: number | null;
-		scheduled: boolean;
-		created_at: string;
-		updated_at: string;
-	};
+	data?: Tables<"fasting_states">;
 }
 
 export interface FastingSubscriptionState {
@@ -50,43 +42,40 @@ export async function startFasting(
 			};
 		}
 
-		// Check if user already has an active or scheduled fast
-		const { data: existingFast, error: checkError } = await supabase
-			.from("fasting_states")
-			.select("*")
-			.eq("user_id", user.id)
-			.or("is_active.eq.true,scheduled.eq.true")
-			.single();
-
-		if (checkError && checkError.code !== "PGRST116") {
-			console.error("Error checking existing fast:", checkError);
-			return { success: false, error: "Failed to check existing fast" };
-		}
-
-		if (existingFast) {
+		const parsedStart = new Date(startTime);
+		const parsedEnd = new Date(endTime);
+		if (
+			Number.isNaN(parsedStart.getTime()) ||
+			Number.isNaN(parsedEnd.getTime()) ||
+			parsedEnd <= parsedStart
+		) {
 			return {
 				success: false,
-				error: existingFast.is_active
-					? "You already have an active fast"
-					: "You already have a scheduled fast",
+				error: "Invalid fasting start or end time",
 			};
 		}
 
-		// Create new fasting state
+		// The partial unique index on live states makes this insert atomic.
 		const { data, error } = await supabase
 			.from("fasting_states")
 			.insert({
 				user_id: user.id,
 				is_active: !scheduled,
-				start_time: startTime,
-				end_time: endTime,
-				duration: duration,
+				start_time: parsedStart.toISOString(),
+				end_time: parsedEnd.toISOString(),
+				duration: duration as 24 | 48 | 72,
 				scheduled: scheduled,
 			})
 			.select()
 			.single();
 
 		if (error) {
+			if (error.code === "23505") {
+				return {
+					success: false,
+					error: "You already have an active or scheduled fast",
+				};
+			}
 			console.error("Error creating fasting state:", error);
 			return { success: false, error: "Failed to start fast" };
 		}
@@ -109,6 +98,62 @@ export async function updateFasting(
 	},
 ): Promise<FastingState> {
 	try {
+		if (!fastingId || !updates || typeof updates !== "object") {
+			return { success: false, error: "Invalid fasting update" };
+		}
+
+		const allowedKeys = new Set([
+			"is_active",
+			"scheduled",
+			"start_time",
+			"end_time",
+		]);
+		if (Object.keys(updates).some((key) => !allowedKeys.has(key))) {
+			return { success: false, error: "Invalid fasting update" };
+		}
+
+		const validatedUpdates: {
+			is_active?: boolean;
+			scheduled?: boolean;
+			start_time?: string;
+			end_time?: string;
+			updated_at: string;
+		} = {
+			updated_at: new Date().toISOString(),
+		};
+
+		if (updates.is_active !== undefined) {
+			if (typeof updates.is_active !== "boolean") {
+				return { success: false, error: "Invalid active state" };
+			}
+			validatedUpdates.is_active = updates.is_active;
+		}
+		if (updates.scheduled !== undefined) {
+			if (typeof updates.scheduled !== "boolean") {
+				return { success: false, error: "Invalid scheduled state" };
+			}
+			validatedUpdates.scheduled = updates.scheduled;
+		}
+		if (updates.is_active === true && updates.scheduled === true) {
+			return {
+				success: false,
+				error: "A fast cannot be active and scheduled at the same time",
+			};
+		}
+		for (const key of ["start_time", "end_time"] as const) {
+			const value = updates[key];
+			if (value === undefined) continue;
+			const parsedValue = new Date(value);
+			if (typeof value !== "string" || Number.isNaN(parsedValue.getTime())) {
+				return { success: false, error: "Invalid fasting time" };
+			}
+			validatedUpdates[key] = parsedValue.toISOString();
+		}
+
+		if (Object.keys(validatedUpdates).length === 1) {
+			return { success: false, error: "No fasting changes provided" };
+		}
+
 		const supabase = await createClient();
 
 		// Check if user is authenticated
@@ -123,10 +168,7 @@ export async function updateFasting(
 		// Update the fasting state
 		const { data, error } = await supabase
 			.from("fasting_states")
-			.update({
-				...updates,
-				updated_at: new Date().toISOString(),
-			})
+			.update(validatedUpdates)
 			.eq("id", fastingId)
 			.eq("user_id", user.id) // Ensure user can only update their own fasts
 			.select()
@@ -201,9 +243,9 @@ export async function getCurrentFasting(): Promise<FastingState> {
 			.select("*")
 			.eq("user_id", user.id)
 			.or("is_active.eq.true,scheduled.eq.true")
-			.single();
+			.maybeSingle();
 
-		if (error && error.code !== "PGRST116") {
+		if (error) {
 			console.error("Error fetching fasting state:", error);
 			return { success: false, error: "Failed to fetch fasting state" };
 		}
@@ -236,40 +278,13 @@ export async function subscribeFastingNotifications(
 			return { success: false, error: "Authentication required" };
 		}
 
-		// Validate required fields
-		if (!subscriptionData?.endpoint || !nextFullMoon) {
-			return {
-				success: false,
-				error:
-					"Missing required fields: subscription endpoint or next full moon date",
-			};
-		}
-
-		// First, check if subscription exists and delete it (upsert behavior)
-		await supabase
-			.from("subscriptions")
-			.delete()
-			.eq("user_id", user.id)
-			.eq("endpoint", subscriptionData.endpoint)
-			.eq("target_phase", "Full Moon")
-			.eq("subscription_type", "fasting");
-
-		// Then insert the new subscription
-		const { error } = await supabase.from("subscriptions").insert({
-			user_id: user.id,
-			endpoint: subscriptionData.endpoint,
-			subscription_type: "fasting",
-			subscription_data: subscriptionData,
-			target_phase: "Full Moon",
-			next_date: nextFullMoon,
+		return await upsertOwnedSubscription(supabase, {
+			userId: user.id,
+			subscriptionData,
+			targetPhase: "Full Moon",
+			nextDate: nextFullMoon,
+			subscriptionType: "fasting",
 		});
-
-		if (error) {
-			console.error("Error storing fasting subscription:", error);
-			return { success: false, error: "Failed to store subscription" };
-		}
-
-		return { success: true };
 	} catch (error) {
 		console.error("Error storing fasting subscription:", error);
 		return { success: false, error: "Failed to store subscription" };
@@ -340,10 +355,10 @@ export async function getFastingSubscriptionStatus(): Promise<{
 			.select("id")
 			.eq("user_id", user.id)
 			.eq("subscription_type", "fasting")
-			.single();
+			.limit(1)
+			.maybeSingle();
 
-		if (error && error.code !== "PGRST116") {
-			// PGRST116 is "not found" error, which is expected when no subscription exists
+		if (error) {
 			console.error("Error checking fasting subscription status:", error);
 			return {
 				success: false,

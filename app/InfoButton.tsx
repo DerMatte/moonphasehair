@@ -24,8 +24,9 @@ export function InfoButton() {
 					variant="ghost"
 					className="p-0 m-0 flex-none gap-0"
 					onClick={() => track("info_button_clicked")}
+					aria-label="Open moon phase hair guide"
 				>
-					<InfoBox size={32} />
+					<InfoBox size={32} aria-hidden="true" />
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-md max-h-screen overflow-y-auto">

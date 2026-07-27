@@ -1,31 +1,30 @@
 "use server";
 
-import webpush from "web-push";
+import {
+	buildUserNotification,
+	parseUserNotificationRequest,
+	type UserNotificationRequest,
+} from "@/lib/notifications/templates";
+import {
+	getPushErrorStatus,
+	parseStoredPushSubscription,
+	sendPushNotification,
+} from "@/lib/notifications/push.server";
 import { createClient } from "@/lib/supabase/server";
 
-if (
-	!process.env.VAPID_EMAIL ||
-	!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-	!process.env.VAPID_PRIVATE_KEY
-) {
-	throw new Error("Missing VAPID environment variables");
-}
-
-webpush.setVapidDetails(
-	`mailto:${process.env.VAPID_EMAIL}`,
-	process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-	process.env.VAPID_PRIVATE_KEY,
-);
-
-export async function subscribeFasting(
-	subscriptionData: PushSubscriptionJSON,
-	targetPhase: string,
-	nextDate: string,
-) {
+export async function sendNotification(request: UserNotificationRequest) {
 	try {
-		const supabase = await createClient();
+		const parsedRequest = parseUserNotificationRequest(request);
+		if (!parsedRequest) {
+			return { success: false, error: "Invalid notification request" };
+		}
 
-		// Check if user is authenticated
+		const payload = buildUserNotification(parsedRequest);
+		if (!payload) {
+			return { success: false, error: "Notification template unavailable" };
+		}
+
+		const supabase = await createClient();
 		const {
 			data: { user },
 			error: authError,
@@ -34,158 +33,31 @@ export async function subscribeFasting(
 			return { success: false, error: "Authentication required" };
 		}
 
-		// Validate required fields
-		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
-			return {
-				success: false,
-				error:
-					"Missing required fields: subscription endpoint, target phase, or next date",
-			};
-		}
-
-		// First, check if subscription exists and delete it (upsert behavior)
-		await supabase
+		const { data: ownedSubscription, error: subscriptionError } = await supabase
 			.from("subscriptions")
-			.delete()
+			.select("subscription_data")
 			.eq("user_id", user.id)
-			.eq("endpoint", subscriptionData.endpoint)
-			.eq("target_phase", targetPhase)
-			.eq("subscription_type", "fasting");
+			.eq("endpoint", parsedRequest.endpoint)
+			.limit(1)
+			.maybeSingle();
 
-		// Then insert the new subscription
-		const { error } = await supabase.from("subscriptions").insert({
-			user_id: user.id,
-			endpoint: subscriptionData.endpoint,
-			subscription_type: "fasting",
-			subscription_data: subscriptionData,
-			target_phase: targetPhase,
-			next_date: nextDate,
-		});
-
-		if (error) {
-			console.error("Error storing fasting subscription:", error);
-			return { success: false, error: "Failed to store subscription" };
+		if (subscriptionError || !ownedSubscription) {
+			return { success: false, error: "Owned subscription not found" };
 		}
 
-		return { success: true };
-	} catch (error) {
-		console.error("Error storing fasting subscription:", error);
-		return { success: false, error: "Failed to store subscription" };
-	}
-}
-
-export async function unsubscribeUser(
-	endpoint: string,
-	subscriptionType: "hair" | "fasting" = "hair",
-) {
-	try {
-		const supabase = await createClient();
-
-		// Check if user is authenticated
-		const {
-			data: { user },
-			error: authError,
-		} = await supabase.auth.getUser();
-		if (authError || !user) {
-			return { success: false, error: "Authentication required" };
-		}
-
-		const { error } = await supabase
-			.from("subscriptions")
-			.delete()
-			.eq("user_id", user.id)
-			.eq("endpoint", endpoint)
-			.eq("subscription_type", subscriptionType);
-
-		if (error) {
-			console.error("Error removing subscription:", error);
-			return { success: false, error: "Failed to remove subscription" };
-		}
-
-		return { success: true };
-	} catch (error) {
-		console.error("Error removing subscription:", error);
-		return { success: false, error: "Failed to remove subscription" };
-	}
-}
-
-export async function subscribeUser(
-	subscriptionData: PushSubscriptionJSON,
-	targetPhase: string,
-	nextDate: string,
-	subscriptionType: "hair" | "fasting" = "hair",
-) {
-	try {
-		const supabase = await createClient();
-
-		// Check if user is authenticated
-		const {
-			data: { user },
-			error: authError,
-		} = await supabase.auth.getUser();
-		if (authError || !user) {
-			return { success: false, error: "Authentication required" };
-		}
-
-		// Validate required fields
-		if (!subscriptionData?.endpoint || !targetPhase || !nextDate) {
-			return {
-				success: false,
-				error:
-					"Missing required fields: subscription endpoint, target phase, or next date",
-			};
-		}
-
-		// First, check if subscription exists and delete it (upsert behavior)
-		await supabase
-			.from("subscriptions")
-			.delete()
-			.eq("user_id", user.id)
-			.eq("endpoint", subscriptionData.endpoint)
-			.eq("target_phase", targetPhase)
-			.eq("subscription_type", subscriptionType);
-
-		// Then insert the new subscription
-		const { error } = await supabase.from("subscriptions").insert({
-			user_id: user.id,
-			endpoint: subscriptionData.endpoint,
-			subscription_type: subscriptionType,
-			subscription_data: subscriptionData,
-			target_phase: targetPhase,
-			next_date: nextDate,
-		});
-
-		if (error) {
-			console.error("Error storing subscription:", error);
-			return { success: false, error: "Failed to store subscription" };
-		}
-
-		return { success: true };
-	} catch (error) {
-		console.error("Error storing subscription:", error);
-		return { success: false, error: "Failed to store subscription" };
-	}
-}
-
-export async function sendNotification(
-	subscriptionData: PushSubscriptionJSON,
-	title: string,
-	body: string,
-	url?: string,
-) {
-	try {
-		await webpush.sendNotification(
-			subscriptionData as any,
-			JSON.stringify({
-				title,
-				body,
-				icon: "/favicon.ico",
-				url: url || "/",
-			}),
+		const subscription = parseStoredPushSubscription(
+			ownedSubscription.subscription_data,
 		);
+		if (!subscription) {
+			return { success: false, error: "Stored subscription is invalid" };
+		}
+
+		await sendPushNotification(subscription, payload);
 		return { success: true };
 	} catch (error) {
-		console.error("Error sending push notification:", error);
+		console.error("Error sending push notification", {
+			statusCode: getPushErrorStatus(error),
+		});
 		return { success: false, error: "Failed to send notification" };
 	}
 }

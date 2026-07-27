@@ -1,13 +1,22 @@
-import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import BigMoon from "@/components/BigMoon";
 import MoonCarousel from "@/components/MoonCarousel";
 import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
 import { formatDateTime } from "@/lib/utils";
 
-export default async function MoonHairDashboard() {
-	"use cache";
-	cacheLife("hours");
-	cacheTag("moon-dashboard");
+export default function MoonHairDashboard() {
+	return (
+		<Suspense fallback={<CurrentMoonFallback />}>
+			<CurrentMoonDashboard />
+		</Suspense>
+	);
+}
+
+async function CurrentMoonDashboard() {
+	// The dashboard answers "what is happening now", so defer the calculation
+	// to request time instead of freezing Date inside the Cache Components shell.
+	await connection();
 
 	// Get moon phase timing information
 	const moonPhaseData = getMoonPhaseWithTiming(new Date());
@@ -20,7 +29,7 @@ export default async function MoonHairDashboard() {
 						<BigMoon phase={moonPhaseData.current.lunarAgePercent} />
 					</div>
 					<div className="lg:flex-1 lg:flex lg:flex-col lg:gap-15">
-						<div className="w-md inline-flex flex-col justify-start items-start gap-8 pb-16 md:pb-0 md:pt-16">
+						<div className="w-full max-w-md inline-flex flex-col justify-start items-start gap-8 pb-16 md:pb-0 md:pt-16">
 							<h1 className="self-stretch justify-start text-3xl font-bold font-sans md:text-5xl">
 								Cut your Hair according to the phase of the moon
 							</h1>
@@ -59,6 +68,17 @@ export default async function MoonHairDashboard() {
 				{/* Horizontal scrollable moon phases section */}
 				<MoonCarousel moonPhaseData={moonPhaseData} />
 			</div>
+		</div>
+	);
+}
+
+function CurrentMoonFallback() {
+	return (
+		<div
+			className="flex min-h-[50vh] items-center justify-center p-4 text-sm text-muted-foreground"
+			role="status"
+		>
+			Loading current moon data…
 		</div>
 	);
 }

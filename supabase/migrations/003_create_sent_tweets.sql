@@ -1,12 +1,16 @@
--- Table for x-tweet dedup (replaces Vercel KV)
 CREATE TABLE IF NOT EXISTS public.sent_tweets (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  tweet_type text NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tweet_type text NOT NULL CHECK (tweet_type IN ('pre', 'noon')),
   phase_name text NOT NULL,
   target_date date NOT NULL,
   tweet_id text,
-  created_at timestamptz DEFAULT NOW(),
-  CONSTRAINT unique_tweet_type_phase_date UNIQUE (tweet_type, phase_name, target_date)
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT unique_tweet_type_phase_date
+    UNIQUE (tweet_type, phase_name, target_date)
 );
 
--- No RLS — only accessed by server-side cron via service role key
+ALTER TABLE public.sent_tweets ENABLE ROW LEVEL SECURITY;
+
+-- Internal cron ledger: no browser role receives a policy or table privilege.
+REVOKE ALL ON TABLE public.sent_tweets FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.sent_tweets TO service_role;

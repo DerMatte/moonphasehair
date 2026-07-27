@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { upsertOwnedSubscription } from "@/lib/subscriptions/upsert.server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -17,42 +18,43 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
-	const { subscription, targetPhase, nextDate } = await request.json();
+	let body: unknown;
+	try {
+		body = await request.json();
+	} catch {
+		return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+	}
 
-	// Validate required fields
-	if (!subscription?.endpoint || !targetPhase || !nextDate) {
+	if (!body || typeof body !== "object") {
 		return NextResponse.json(
-			{
-				error:
-					"Missing required fields: subscription.endpoint, targetPhase, or nextDate",
-			},
+			{ error: "Invalid subscription request" },
 			{ status: 400 },
 		);
 	}
 
-	// First, check if subscription exists and delete it
-	await supabase
-		.from("subscriptions")
-		.delete()
-		.eq("user_id", user.id)
-		.eq("endpoint", subscription.endpoint)
-		.eq("target_phase", targetPhase);
+	const requestBody = body as Record<string, unknown>;
+	if (
+		typeof requestBody.targetPhase !== "string" ||
+		typeof requestBody.nextDate !== "string"
+	) {
+		return NextResponse.json(
+			{ error: "Invalid subscription request" },
+			{ status: 400 },
+		);
+	}
 
-	// Then insert the new subscription
-	const { error } = await supabase.from("subscriptions").insert({
-		user_id: user.id,
-		endpoint: subscription.endpoint,
-		subscription_type: "hair",
-		subscription_data: subscription,
-		target_phase: targetPhase,
-		next_date: nextDate,
+	const result = await upsertOwnedSubscription(supabase, {
+		userId: user.id,
+		subscriptionData: requestBody.subscription,
+		targetPhase: requestBody.targetPhase,
+		nextDate: requestBody.nextDate,
+		subscriptionType: "hair",
 	});
 
-	if (error) {
-		console.error("Error saving subscription:", error);
+	if (!result.success) {
 		return NextResponse.json(
-			{ error: "Failed to save subscription" },
-			{ status: 500 },
+			{ error: result.error },
+			{ status: result.error.startsWith("Invalid") ? 400 : 500 },
 		);
 	}
 

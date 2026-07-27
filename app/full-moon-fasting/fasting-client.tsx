@@ -3,7 +3,7 @@
 import type { User } from "@supabase/supabase-js";
 import { Bell, BellOff, CheckCircle2, Timer } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { sendNotification } from "@/app/actions";
 import {
@@ -31,6 +31,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 
 interface FastingClientProps {
 	nextFullMoon: string | null;
+	quickTips: ReactNode;
 }
 
 type FastDuration = 24 | 48 | 72;
@@ -43,7 +44,10 @@ type FastingState = {
 	scheduled: boolean;
 };
 
-export default function FastingClient({ nextFullMoon }: FastingClientProps) {
+export default function FastingClient({
+	nextFullMoon,
+	quickTips,
+}: FastingClientProps) {
 	const [fastDuration, setFastDuration] = useState<FastDuration>(24);
 	const [fastingState, setFastingState] = useState<FastingState>({
 		isActive: false,
@@ -248,12 +252,11 @@ export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 
 					// Send completion notification
 					if (subscription) {
-						sendNotification(
-							subscription.toJSON(),
-							"Fast Completed! 🎉",
-							`Congratulations! You've completed your ${duration}h full moon fast.`,
-							"/full-moon-fasting",
-						);
+						void sendNotification({
+							template: "fast-completed",
+							endpoint: subscription.endpoint,
+							duration,
+						});
 					}
 					toast.success("Fast completed! 🎉");
 				}
@@ -323,12 +326,12 @@ export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 						const hoursUntilStart = Math.round(
 							(times.start.getTime() - now.getTime()) / (1000 * 60 * 60),
 						);
-						await sendNotification(
-							subscription.toJSON(),
-							"Full Moon Fast Scheduled",
-							`Your ${fastDuration}h fast will begin in ${hoursUntilStart} hours`,
-							"/full-moon-fasting",
-						);
+						await sendNotification({
+							template: "fast-scheduled",
+							endpoint: subscription.endpoint,
+							duration: fastDuration,
+							hoursUntilStart,
+						});
 					}
 				} else {
 					toast.error(result.error || "Failed to schedule fast");
@@ -497,7 +500,10 @@ export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 					<Card className="border-primary bg-neutral-50">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2 text-2xl">
-								<Timer className="w-6 h-6 animate-pulse" />
+								<Timer
+									className="w-6 h-6 animate-pulse motion-reduce:animate-none"
+									aria-hidden="true"
+								/>
 								Fast in Progress
 							</CardTitle>
 							<CardDescription>
@@ -642,7 +648,7 @@ export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 										}
 									>
 										{loading ? (
-											<span className="font-semibold">Loading...</span>
+											<span className="font-semibold">Loading…</span>
 										) : fastingState.scheduled ? (
 											<div className="flex items-center justify-center gap-2 flex-wrap">
 												<CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 drop-shadow-[0_0_6px_cyan] flex-shrink-0" />
@@ -668,12 +674,17 @@ export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 													? "Disable fasting notifications"
 													: "Enable fasting notifications"
 											}
+											aria-label={
+												isSubscribedToNotifications
+													? "Disable fasting notifications"
+													: "Enable fasting notifications"
+											}
 										>
 											<div className="flex items-center gap-2">
 												{isSubscribedToNotifications ? (
-													<BellOff className="w-5 h-5" />
+													<BellOff className="w-5 h-5" aria-hidden="true" />
 												) : (
-													<Bell className="w-5 h-5" />
+													<Bell className="w-5 h-5" aria-hidden="true" />
 												)}
 												<span className="sm:hidden">
 													{isSubscribedToNotifications
@@ -688,45 +699,7 @@ export default function FastingClient({ nextFullMoon }: FastingClientProps) {
 						</CardContent>
 					</Card>
 
-					{/* Quick Tips Panel */}
-					<Card className="bg-neutral-50">
-						<CardHeader>
-							<CardTitle className="text-lg">Quick Tips</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid gap-3">
-								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
-									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-									<p className="text-sm">
-										JUST STOP EATING. No Calories. No Coffee. No Tea.
-									</p>
-								</div>
-								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
-									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-									<p className="text-sm">
-										Drink lots of water at least 4l. Bonus: add celtic sea salt
-										+ lemon juice.
-									</p>
-								</div>
-								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
-									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-									<p className="text-sm">
-										Autogaphy starts at 24h. This is where your body starts to
-										regenerate cells. Hour 36 – 48 is the hardest. After 72+ you
-										completely loose your hunger.
-									</p>
-								</div>
-								<div className="grid gap-2 grid-cols-[auto_1fr] items-start">
-									<CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-									<p className="text-sm">
-										Break your fast with bone broth or soup. HALF the length of
-										the fast = the length of time you should take to reactivate
-										digestion
-									</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+					{quickTips}
 				</div>
 			)}
 

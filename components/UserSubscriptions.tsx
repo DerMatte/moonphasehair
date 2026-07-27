@@ -1,4 +1,5 @@
 import { Bell } from "lucide-react";
+import { ReminderControls } from "@/components/ReminderControls";
 import {
 	Card,
 	CardContent,
@@ -6,61 +7,39 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
+import type { Tables } from "@/lib/database.types";
 
-interface Subscription {
-	id: string;
-	target_phase: string;
-}
+type Subscription = Pick<
+	Tables<"subscriptions">,
+	"id" | "target_phase" | "next_date" | "subscription_type"
+>;
 
-export default async function UserSubscriptions() {
-	const supabase = await createClient();
-	// biome-ignore lint/suspicious/noExplicitAny: Supabase types
-	const { data: userData }: any = await supabase.auth.getUser();
-	const user = userData?.user;
-
-	if (!user) {
-		return null;
-	}
-
-	const { data, error } = await supabase
-		.from("subscriptions")
-		.select("*")
-		.eq("user_id", user.id)
-		.eq("subscription_type", "hair");
-
-	if (error || !data || data.length === 0) {
-		return null;
-	}
-
-	const subscribedPhases = data as Subscription[];
-
+export default function UserSubscriptions({
+	subscriptions,
+	hasLoadError = false,
+}: {
+	subscriptions: Subscription[];
+	hasLoadError?: boolean;
+}) {
 	return (
-		<Card className="w-full">
+		<Card id="notification-settings" className="w-full scroll-mt-6">
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Bell className="w-5 h-5" />
-					Your Moon Phase Notifications
+					<Bell className="w-5 h-5" aria-hidden="true" />
+					Notification Settings
 				</CardTitle>
 				<CardDescription>
-					You'll be notified when these phases occur
+					Manage browser permission, hair reminders, and fasting reminders.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div className="space-y-2">
-					{subscribedPhases.map((subscription: Subscription) => (
-						<div
-							key={subscription.id}
-							className="flex items-center gap-2 p-2 bg-neutral-50 rounded"
-						>
-							<span className="text-lime-600">✓</span>
-							<span className="font-mono">{subscription.target_phase}</span>
-						</div>
-					))}
-				</div>
-				<p className="text-xs text-muted-foreground mt-4">
-					Click on any moon phase card below to manage your subscriptions
-				</p>
+				{hasLoadError ? (
+					<p role="alert" className="text-sm text-destructive">
+						Your reminders could not be loaded. Refresh the page to try again.
+					</p>
+				) : (
+					<ReminderControls reminders={subscriptions} />
+				)}
 			</CardContent>
 		</Card>
 	);

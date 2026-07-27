@@ -2,28 +2,33 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import UserSubscriptions from "@/components/UserSubscriptions";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
 async function ProfileContent() {
-	const supabase = await createClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
+	const user = await getCurrentUser();
 
 	if (!user) {
 		redirect("/auth/login?redirect=/profile");
 	}
 
+	const supabase = await createClient();
+	const { data: subscriptions, error: subscriptionsError } = await supabase
+		.from("subscriptions")
+		.select("id, target_phase, next_date, subscription_type")
+		.eq("user_id", user.id)
+		.order("next_date", { ascending: true });
+
 	return (
 		<div className="min-h-dvh">
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 py-8">
+			<div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 px-4 py-8">
 				{/* Page Header */}
-				<div className="text-center mb-8 md:col-span-2">
+				<div className="mb-8 text-center">
 					<div className="flex items-center justify-center gap-3 mb-4">
 						<h1 className="text-3xl font-bold">Your Profile</h1>
 					</div>
 					<p className="text-neutral-600 max-w-2xl mx-auto">
-						Manage your moon phase notifications and account settings
+						Manage your account and all notification topics in one place.
 					</p>
 				</div>
 
@@ -57,27 +62,10 @@ async function ProfileContent() {
 				</Card>
 
 				{/* User Subscriptions */}
-				<UserSubscriptions />
-
-				{/* Additional sections can be added here */}
-				<Card className="">
-					<CardHeader className="">
-						<h2 className="text-xl font-semibold mb-4">
-							Notification Settings
-						</h2>
-					</CardHeader>
-					<CardContent className="">
-						<p className="text-neutral-600 mb-4">
-							Customize how and when you receive moon phase notifications.
-						</p>
-						<div className="text-sm text-neutral-500">
-							<p>
-								💡 Tip: You can subscribe to multiple moon phases by clicking
-								the "Remind me" buttons on the main page.
-							</p>
-						</div>
-					</CardContent>
-				</Card>
+				<UserSubscriptions
+					subscriptions={subscriptions ?? []}
+					hasLoadError={Boolean(subscriptionsError)}
+				/>
 			</div>
 		</div>
 	);

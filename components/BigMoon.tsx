@@ -30,7 +30,7 @@ export default function BigMoon({ phase }: { phase: number }) {
 	return (
 		<div className="relative w-full max-w-[400px] sm:max-w-[500px] md:max-w-[600px] lg:max-w-[700px] aspect-square mx-auto">
 			{/* Outer glow effect */}
-			<div className="absolute -inset-[10%] rounded-full bg-gradient-to-r from-blue-200/20 via-white/30 to-blue-200/20 blur-2xl animate-pulse" />
+			<div className="absolute -inset-[10%] rounded-full bg-gradient-to-r from-blue-200/20 via-white/30 to-blue-200/20 blur-2xl animate-pulse motion-reduce:animate-none" />
 
 			{/* Moon container with border */}
 			<div className="relative w-full h-full rounded-full border-2 border-gray-300/30 p-[2%]">
@@ -39,12 +39,14 @@ export default function BigMoon({ phase }: { phase: number }) {
 				<img
 					src="/CoolArrow.svg"
 					alt=""
+					width={320}
+					height={320}
 					className="absolute bottom-0 left-0 -translate-x-4 -translate-y-4 -z-10 w-1/2"
 				/>
 
 				{/* Moon texture background, rotated to match the moon's tilt in the sky */}
 				<div
-					className="relative w-full h-full rounded-full overflow-hidden transition-transform duration-1000 ease-out"
+					className="relative w-full h-full rounded-full overflow-hidden transition-transform duration-1000 ease-out motion-reduce:transition-none"
 					style={{ transform: `rotate(${rotation ?? 0}deg)` }}
 				>
 					{/* Next.js optimized background image */}

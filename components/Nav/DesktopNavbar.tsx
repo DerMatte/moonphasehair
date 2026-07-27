@@ -31,6 +31,7 @@ export function DesktopNavbar({
 				<div className="flex items-center space-x-1 h-12">
 					<Link
 						href="/"
+						aria-current={pathname === "/" ? "page" : undefined}
 						className={cn(
 							buttonVariants({ variant: "ghost" }),
 							"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium",
@@ -41,6 +42,9 @@ export function DesktopNavbar({
 					</Link>
 					<Link
 						href="/full-moon-fasting"
+						aria-current={
+							pathname === "/full-moon-fasting" ? "page" : undefined
+						}
 						className={cn(
 							buttonVariants({ variant: "ghost" }),
 							"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium",
@@ -52,6 +56,7 @@ export function DesktopNavbar({
 					{user && (
 						<Link
 							href="/profile"
+							aria-current={pathname === "/profile" ? "page" : undefined}
 							className={cn(
 								buttonVariants({ variant: "ghost" }),
 								"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium",

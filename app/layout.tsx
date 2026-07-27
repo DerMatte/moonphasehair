@@ -5,6 +5,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import Nav from "@/components/Nav";
 import { Toaster } from "@/components/ui/sonner";
 import { InfoButton } from "./InfoButton";
@@ -83,13 +84,16 @@ export default function RootLayout({
 			<body
 				className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased text-black bg-neutral-100 font-mono`}
 			>
+				<a
+					href="#main-content"
+					className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform focus-visible:translate-y-0 motion-reduce:transition-none"
+				>
+					Skip to main content
+				</a>
 				<ServiceWorker />
 				<div className="fixed top-4 right-4 z-50 max-w-sm">
 					<InstallPrompt />
 				</div>
-				{/* <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-					<PushNotificationManager />
-				</div> */}
 				{/* Border Container */}
 				<div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-16">
 					<div className="relative w-full h-full min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-8rem)]">
@@ -126,11 +130,15 @@ export default function RootLayout({
 						>
 							{/* <Nav /> */}
 
-							<main className="flex-1 py-4 sm:py-6 overflow-x-hidden">
+							<main
+								id="main-content"
+								tabIndex={-1}
+								className="flex-1 py-4 sm:py-6 overflow-x-hidden focus:outline-none"
+							>
 								<PageTransition>{children}</PageTransition>
 							</main>
 
-							<footer className="flex flex-row items-center justify-between px-4 py-2">
+							<footer className="flex flex-wrap items-center justify-between gap-3 px-4 py-2">
 								<span>
 									Homage:{" "}
 									<a
@@ -141,7 +149,15 @@ export default function RootLayout({
 										{process.env.NEXT_PUBLIC_HOMAGE_NAME}
 									</a>
 								</span>
-								<InfoButton />
+								<div className="flex items-center gap-3">
+									<Link
+										href="/privacy"
+										className="text-sm underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-800"
+									>
+										Privacy
+									</Link>
+									<InfoButton />
+								</div>
 							</footer>
 						</div>
 					</div>

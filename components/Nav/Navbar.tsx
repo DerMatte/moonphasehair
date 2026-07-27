@@ -2,7 +2,7 @@
 
 import { Close, Menu } from "@nsmr/pixelart-react";
 import type { User } from "@supabase/supabase-js";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,7 +13,6 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import logo from "@/public/moonphasehair-logo.png";
 import { buttonVariants } from "../ui/button";
-import { Label } from "../ui/label";
 import { DesktopNavbar } from "./DesktopNavbar";
 import type { LocationData } from "./index";
 
@@ -41,6 +40,16 @@ const linkVariants = {
 	open: { opacity: 1, y: 0 },
 };
 
+const reducedMenuVariants = {
+	closed: { opacity: 0, height: 0, transition: { duration: 0 } },
+	open: { opacity: 1, height: "auto", transition: { duration: 0 } },
+} as const;
+
+const reducedLinkVariants = {
+	closed: { opacity: 0 },
+	open: { opacity: 1 },
+};
+
 export function Navbar({
 	locationData,
 	initialUser = null,
@@ -50,23 +59,27 @@ export function Navbar({
 }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [user, setUser] = useState<User | null>(initialUser);
+	const [supabase] = useState(createClient);
 	const toggleMenu = () => setIsOpen((prev) => !prev);
 	const pathname = usePathname();
-	const supabase = createClient();
+	const shouldReduceMotion = useReducedMotion();
+	const displayLocation =
+		locationData?.city && locationData.city !== locationData.country
+			? [locationData.city, locationData.country].filter(Boolean).join(", ")
+			: locationData?.country || locationData?.city || null;
 
 	useEffect(() => {
 		const {
 			data: { subscription },
-			// biome-ignore lint/suspicious/noExplicitAny: Supabase types
-		} = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+		} = supabase.auth.onAuthStateChange((_event, session) => {
 			setUser(session?.user ?? null);
 		});
 
 		return () => subscription.unsubscribe();
-	}, [supabase.auth]);
+	}, [supabase]);
 
 	return (
-		<nav className="w-full font-medium pt-2">
+		<nav className="w-full font-medium pt-2" aria-label="Primary">
 			{/* Desktop Layout */}
 			<DesktopNavbar pathname={pathname} user={user} />
 
@@ -89,13 +102,22 @@ export function Navbar({
 
 					{/* Hamburger Menu Button */}
 					<motion.button
+						type="button"
 						onClick={toggleMenu}
-						animate={{ rotate: isOpen ? 90 : 0 }}
-						transition={{ duration: 0.2 }}
+						animate={{ rotate: shouldReduceMotion ? 0 : isOpen ? 90 : 0 }}
+						transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
 						className="p-1 flex items-center justify-center rounded text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 transition-colors shadow-none"
-						aria-label="Toggle menu"
+						aria-label={
+							isOpen ? "Close navigation menu" : "Open navigation menu"
+						}
+						aria-expanded={isOpen}
+						aria-controls="mobile-navigation-menu"
 					>
-						{isOpen ? <Close size={32} /> : <Menu size={32} />}
+						{isOpen ? (
+							<Close size={32} aria-hidden="true" />
+						) : (
+							<Menu size={32} aria-hidden="true" />
+						)}
 					</motion.button>
 				</div>
 			</div>
@@ -104,16 +126,22 @@ export function Navbar({
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
+						id="mobile-navigation-menu"
 						initial="closed"
 						animate="open"
 						exit="closed"
-						variants={menuVariants}
+						variants={shouldReduceMotion ? reducedMenuVariants : menuVariants}
 						className="md:hidden overflow-hidden mt-4"
 					>
 						<div className="py-2 space-y-1 border-t border-neutral-200 w-full">
-							<motion.div variants={linkVariants}>
+							<motion.div
+								variants={
+									shouldReduceMotion ? reducedLinkVariants : linkVariants
+								}
+							>
 								<Link
 									href="/"
+									aria-current={pathname === "/" ? "page" : undefined}
 									onClick={() => setIsOpen(false)}
 									className={cn(
 										buttonVariants({ variant: "ghost" }),
@@ -124,9 +152,17 @@ export function Navbar({
 									Home
 								</Link>
 							</motion.div>
-							<motion.div variants={linkVariants} transition={{ delay: 0.1 }}>
+							<motion.div
+								variants={
+									shouldReduceMotion ? reducedLinkVariants : linkVariants
+								}
+								transition={{ delay: shouldReduceMotion ? 0 : 0.1 }}
+							>
 								<Link
 									href="/full-moon-fasting"
+									aria-current={
+										pathname === "/full-moon-fasting" ? "page" : undefined
+									}
 									onClick={() => setIsOpen(false)}
 									className={cn(
 										buttonVariants({ variant: "ghost" }),
@@ -138,9 +174,15 @@ export function Navbar({
 								</Link>
 							</motion.div>
 							{user && (
-								<motion.div variants={linkVariants} transition={{ delay: 0.2 }}>
+								<motion.div
+									variants={
+										shouldReduceMotion ? reducedLinkVariants : linkVariants
+									}
+									transition={{ delay: shouldReduceMotion ? 0 : 0.2 }}
+								>
 									<Link
 										href="/profile"
+										aria-current={pathname === "/profile" ? "page" : undefined}
 										onClick={() => setIsOpen(false)}
 										className={cn(
 											buttonVariants({ variant: "ghost" }),
@@ -153,13 +195,19 @@ export function Navbar({
 								</motion.div>
 							)}
 							<motion.div
-								variants={linkVariants}
-								transition={{ delay: user ? 0.3 : 0.2 }}
+								variants={
+									shouldReduceMotion ? reducedLinkVariants : linkVariants
+								}
+								transition={{
+									delay: shouldReduceMotion ? 0 : user ? 0.3 : 0.2,
+								}}
 							>
-								<Label className="flex items-center justify-start text-xs text-center px-3 pt-4 rounded bg-transparent text-neutral-600 ">
-									<span className="font-medium">Location:</span>
-									{locationData?.city}, {locationData?.country}
-								</Label>
+								{displayLocation ? (
+									<div className="flex items-center justify-start gap-1 text-xs px-3 pt-4 rounded bg-transparent text-neutral-600">
+										<span className="font-medium">Location:</span>
+										<span>{displayLocation}</span>
+									</div>
+								) : null}
 							</motion.div>
 						</div>
 					</motion.div>

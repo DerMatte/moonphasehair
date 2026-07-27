@@ -1,6 +1,6 @@
 import { Brain, Calendar, Clock, Heart, Moon, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
-import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import BigMoon from "@/components/BigMoon";
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/lib/MoonPhaseCalculator";
 import { formatDateTime } from "@/lib/utils";
 import FastingClient from "./fasting-client";
+import FastingQuickTips from "./fasting-quick-tips";
 
 export const metadata: Metadata = {
 	title: "Full Moon Fasting",
@@ -44,10 +45,18 @@ export const metadata: Metadata = {
 	},
 };
 
-export default async function FastingPage() {
-	"use cache";
-	cacheLife("hours");
-	cacheTag("full-moon-fasting");
+export default function FastingPage() {
+	return (
+		<Suspense fallback={<FastingPageFallback />}>
+			<CurrentFastingPage />
+		</Suspense>
+	);
+}
+
+async function CurrentFastingPage() {
+	// The next fasting window is time-sensitive and must be calculated for the
+	// current request rather than captured inside a long-lived cache entry.
+	await connection();
 
 	// Get current moon phase data and next full moon
 	const moonData = getMoonPhaseWithTiming(new Date());
@@ -66,7 +75,7 @@ export default async function FastingPage() {
 	}
 
 	return (
-		<main className="min-h-screen">
+		<div className="min-h-screen">
 			<div className="w-full max-w-7xl mx-auto px-4 py-8">
 				<h1 className="text-4xl md:text-5xl font-bold text-center mb-8">
 					Full Moon Fasting
@@ -188,19 +197,23 @@ export default async function FastingPage() {
 
 				{/* Bottom Section - Fasting Client spanning full width */}
 				<div className="w-full">
-					<Suspense
-						fallback={
-							<div className="flex items-center justify-center min-h-[400px]">
-								<div className="animate-pulse text-muted-foreground">
-									Loading fasting options...
-								</div>
-							</div>
-						}
-					>
-						<FastingClient nextFullMoon={nextFullMoon?.toISOString() || null} />
-					</Suspense>
+					<FastingClient
+						nextFullMoon={nextFullMoon?.toISOString() || null}
+						quickTips={<FastingQuickTips />}
+					/>
 				</div>
 			</div>
-		</main>
+		</div>
+	);
+}
+
+function FastingPageFallback() {
+	return (
+		<div
+			className="flex min-h-[50vh] items-center justify-center p-4 text-sm text-muted-foreground"
+			role="status"
+		>
+			Loading current fasting window…
+		</div>
 	);
 }

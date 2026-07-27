@@ -111,6 +111,7 @@ export default async function Image() {
 			</div>
 
 			{/* Moon emoji */}
+			{/* biome-ignore lint/performance/noImgElement: ImageResponse supports embedded data URLs through img */}
 			<img
 				src={moonPatternSrc}
 				alt="Moon pattern"

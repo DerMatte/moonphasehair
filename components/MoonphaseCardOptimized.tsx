@@ -1,15 +1,13 @@
 "use client";
 
-import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import {
-	getSubscriptionStatus,
 	subscribeMoonPhase,
 	unsubscribeMoonPhase,
 } from "@/app/actions/moon-subscription";
-import { createClient } from "@/lib/supabase/client";
+import { useMoonSubscriptions } from "@/components/MoonSubscriptionProvider";
 
 interface MoonPhaseCardClientProps {
 	phase: string;
@@ -23,43 +21,14 @@ export function MoonPhaseCardClient({
 	isCurrentPhase,
 }: MoonPhaseCardClientProps) {
 	const [isPending, startTransition] = useTransition();
-	const [user, setUser] = useState<User | null>(null);
-	const [isSubscribed, setIsSubscribed] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 	const router = useRouter();
-	const supabase = createClient();
-
-	useEffect(() => {
-		// Check authentication status
-		// biome-ignore lint/suspicious/noExplicitAny: Supabase types
-		supabase.auth.getUser().then(({ data }: any) => {
-			setUser(data?.user ?? null);
-		});
-
-		// Listen for auth changes
-		const {
-			data: { subscription },
-			// biome-ignore lint/suspicious/noExplicitAny: Supabase types
-		} = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-			setUser(session?.user ?? null);
-		});
-
-		return () => subscription.unsubscribe();
-	}, [supabase.auth]);
-
-	// Fetch subscription status when user or phase changes
-	useEffect(() => {
-		async function checkSubscription() {
-			if (user) {
-				const status = await getSubscriptionStatus(phase);
-				setIsSubscribed(status);
-			} else {
-				setIsSubscribed(false);
-			}
-			setIsLoading(false);
-		}
-		checkSubscription();
-	}, [user, phase]);
+	const {
+		isLoading,
+		isSubscribed: getIsSubscribed,
+		setSubscribed,
+		user,
+	} = useMoonSubscriptions();
+	const isSubscribed = getIsSubscribed(phase);
 
 	const handleToggleSubscription = async () => {
 		// Check if user is authenticated
@@ -75,7 +44,7 @@ export function MoonPhaseCardClient({
 		if (isSubscribed) {
 			startTransition(async () => {
 				// Optimistically update the UI
-				setIsSubscribed(false);
+				setSubscribed(phase, false);
 
 				// Call server action to unsubscribe
 				const result = await unsubscribeMoonPhase(phase);
@@ -84,7 +53,7 @@ export function MoonPhaseCardClient({
 					toast.success(`Unsubscribed from ${phase} notifications`);
 				} else {
 					// Revert optimistic update on error
-					setIsSubscribed(true);
+					setSubscribed(phase, true);
 					toast.error(result.error || "Failed to unsubscribe");
 				}
 			});
@@ -126,7 +95,7 @@ export function MoonPhaseCardClient({
 
 			startTransition(async () => {
 				// Optimistically update the UI
-				setIsSubscribed(true);
+				setSubscribed(phase, true);
 
 				// Call server action
 				const result = await subscribeMoonPhase(phase, subscription.toJSON());
@@ -135,7 +104,7 @@ export function MoonPhaseCardClient({
 					toast.success(`Subscribed to ${phase} notifications!`);
 				} else {
 					// Revert optimistic update on error
-					setIsSubscribed(false);
+					setSubscribed(phase, false);
 					if (result.error === "Authentication required") {
 						toast.error("Please sign in to enable notifications");
 						router.push(
@@ -163,7 +132,7 @@ export function MoonPhaseCardClient({
 				className="bg-gray-200 px-4 py-2 rounded-lg font-mono text-base"
 				type="button"
 			>
-				Loading...
+				Loading…
 			</button>
 		);
 	}
