@@ -6,15 +6,21 @@ import {
 	type MoonPhaseData,
 } from "@/lib/MoonPhaseCalculator";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+	createMoonPhasePostImage,
+	getMoonPhasePostImageAltText,
+} from "@/lib/x/moonPhasePostImage";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CATCH_UP_MS = 3 * DAY_MS;
-const SITE_URL = "https://moonphasehair.com";
+const MAX_X_IMAGE_BYTES = 5 * 1024 * 1024;
+const POST_IMAGE_THEME =
+	process.env.X_POST_IMAGE_THEME === "dark" ? "dark" : "brand";
 
 type TweetType = "pre" | "noon";
 type TweetPhase = Pick<
 	MoonPhaseData["next"],
-	"name" | "action" | "description" | "emoji"
+	"name" | "action" | "description" | "emoji" | "phaseValue"
 >;
 
 type ScheduledTweet = {
@@ -76,8 +82,7 @@ const isDue = (tweet: ScheduledTweet, now: Date) => {
 	return tweet.type !== "pre" || now.getTime() < tweet.phaseDate.getTime();
 };
 
-const buildTweetText = (tweet: ScheduledTweet, now: Date) => {
-	const { phase } = tweet;
+const getTimingLabel = (tweet: ScheduledTweet, now: Date) => {
 	const daysUntilPhase =
 		(toUtcNoon(tweet.phaseDate).getTime() - toUtcNoon(now).getTime()) / DAY_MS;
 
@@ -90,14 +95,20 @@ const buildTweetText = (tweet: ScheduledTweet, now: Date) => {
 		timing = "Today's phase";
 	}
 
-	const prefix = `${timing}: ${phase.emoji} ${phase.name}.`;
-	const full = `${prefix} Hair tip: ${phase.action}. ${phase.description} ${SITE_URL}`;
+	return timing;
+};
+
+const buildTweetText = (tweet: ScheduledTweet, now: Date) => {
+	const { phase } = tweet;
+	const timing = getTimingLabel(tweet, now);
+	const prefix = `${timing}: ${phase.emoji} ${phase.name}`;
+	const full = `${prefix}\n\n✂️ Hair focus\n${phase.action}\n\n${phase.description}`;
 	if (full.length <= 280) return full;
 
-	const shortened = `${prefix} Hair tip: ${phase.action}. ${SITE_URL}`;
+	const shortened = `${prefix}\n\n✂️ Hair focus\n${phase.action}`;
 	if (shortened.length <= 280) return shortened;
 
-	return `${prefix} Hair tip: ${phase.action}.`;
+	return prefix;
 };
 
 const createTwitterClient = () => {
@@ -211,6 +222,11 @@ export async function GET(request: NextRequest) {
 		const dateKey = toDateKey(tweet.targetDate);
 
 		const text = buildTweetText(tweet, now);
+		const timing = getTimingLabel(tweet, now);
+		const imageAltText = getMoonPhasePostImageAltText({
+			...tweet.phase,
+			phaseDate: tweet.phaseDate,
+		});
 
 		if (dryRun) {
 			const { data: existing, error: lookupError } = await supabase
@@ -236,7 +252,16 @@ export async function GET(request: NextRequest) {
 				type: tweet.type,
 				phase: tweet.phase.name,
 				status: existing ? "skipped" : "dry_run",
-				...(existing ? { reason: "already_sent" } : { text }),
+				...(existing
+					? { reason: "already_sent" }
+					: {
+							text,
+							image: {
+								altText: imageAltText,
+								dimensions: "1200x675",
+								theme: POST_IMAGE_THEME,
+							},
+						}),
 			});
 			continue;
 		}
@@ -279,7 +304,30 @@ export async function GET(request: NextRequest) {
 				throw new Error("X API client is not available");
 			}
 
-			const response = await twitterClient.v2.tweet(text);
+			const image = await createMoonPhasePostImage({
+				...tweet.phase,
+				phaseDate: tweet.phaseDate,
+				timing,
+				theme: POST_IMAGE_THEME,
+			});
+			if (image.byteLength > MAX_X_IMAGE_BYTES) {
+				throw new Error(
+					`Generated moon phase image exceeds X's 5 MB limit (${image.byteLength} bytes)`,
+				);
+			}
+
+			const mediaId = await twitterClient.v2.uploadMedia(image, {
+				media_type: "image/png",
+				media_category: "tweet_image",
+			});
+			await twitterClient.v2.createMediaMetadata(mediaId, {
+				alt_text: { text: imageAltText },
+			});
+
+			const response = await twitterClient.v2.tweet({
+				text,
+				media: { media_ids: [mediaId] },
+			});
 			const { error: recordError } = await supabase
 				.from("sent_tweets")
 				.update({ tweet_id: response.data.id })
