@@ -1,14 +1,28 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
-import { getMoonPhaseWithTiming } from "@/lib/MoonPhaseCalculator";
+import {
+	getMoonPhaseWithTiming,
+	type MoonPhaseData,
+} from "@/lib/MoonPhaseCalculator";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const WINDOW_MS = 9 * 60 * 1000;
+const CATCH_UP_MS = 3 * DAY_MS;
 const SITE_URL = "https://moonphasehair.com";
 
 type TweetType = "pre" | "noon";
+type TweetPhase = Pick<
+	MoonPhaseData["next"],
+	"name" | "action" | "description" | "emoji"
+>;
+
+type ScheduledTweet = {
+	type: TweetType;
+	phase: TweetPhase;
+	targetDate: Date;
+	phaseDate: Date;
+};
 
 const toUtcNoon = (date: Date) =>
 	new Date(
@@ -23,24 +37,60 @@ const toUtcNoon = (date: Date) =>
 		),
 	);
 
-const isSameUtcDate = (left: Date, right: Date) =>
-	left.getUTCFullYear() === right.getUTCFullYear() &&
-	left.getUTCMonth() === right.getUTCMonth() &&
-	left.getUTCDate() === right.getUTCDate();
-
-const isWithinWindow = (now: Date, target: Date) =>
-	Math.abs(now.getTime() - target.getTime()) <= WINDOW_MS;
-
 const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
 
-const buildTweetText = (
-	type: TweetType,
-	phase: { name: string; action: string; description: string; emoji: string },
-) => {
-	const prefix =
-		type === "pre"
-			? `In 2 days: ${phase.emoji} ${phase.name}.`
-			: `Today at noon: ${phase.emoji} ${phase.name}.`;
+const getScheduledTweets = (phaseInfo: MoonPhaseData): ScheduledTweet[] => {
+	const phases = [
+		{
+			phase: phaseInfo.current,
+			phaseDate: toUtcNoon(phaseInfo.current.startDate),
+		},
+		{
+			phase: phaseInfo.next,
+			phaseDate: toUtcNoon(phaseInfo.current.endDate),
+		},
+	];
+
+	return phases.flatMap(({ phase, phaseDate }) => [
+		{
+			type: "pre" as const,
+			phase,
+			targetDate: new Date(phaseDate.getTime() - 2 * DAY_MS),
+			phaseDate,
+		},
+		{
+			type: "noon" as const,
+			phase,
+			targetDate: phaseDate,
+			phaseDate,
+		},
+	]);
+};
+
+const isDue = (tweet: ScheduledTweet, now: Date) => {
+	const ageMs = now.getTime() - tweet.targetDate.getTime();
+
+	if (ageMs < 0 || ageMs > CATCH_UP_MS) return false;
+
+	// Once the phase-day update is due, an old advance notice is no longer useful.
+	return tweet.type !== "pre" || now.getTime() < tweet.phaseDate.getTime();
+};
+
+const buildTweetText = (tweet: ScheduledTweet, now: Date) => {
+	const { phase } = tweet;
+	const daysUntilPhase =
+		(toUtcNoon(tweet.phaseDate).getTime() - toUtcNoon(now).getTime()) / DAY_MS;
+
+	let timing = "Moon update";
+	if (tweet.type === "pre") {
+		if (daysUntilPhase === 2) timing = "In 2 days";
+		else if (daysUntilPhase === 1) timing = "Tomorrow";
+		else if (daysUntilPhase === 0) timing = "Today";
+	} else if (daysUntilPhase === 0) {
+		timing = "Today's phase";
+	}
+
+	const prefix = `${timing}: ${phase.emoji} ${phase.name}.`;
 	const full = `${prefix} Hair tip: ${phase.action}. ${phase.description} ${SITE_URL}`;
 	if (full.length <= 280) return full;
 
@@ -57,7 +107,7 @@ const createTwitterClient = () => {
 	const accessSecret = process.env.X_ACCESS_SECRET;
 
 	if (!appKey || !appSecret || !accessToken || !accessSecret) {
-		return null;
+		throw new Error("X API credentials are not configured");
 	}
 
 	return new TwitterApi({
@@ -67,6 +117,35 @@ const createTwitterClient = () => {
 		accessSecret,
 	});
 };
+
+const getMissingEnvironment = (dryRun: boolean) => {
+	const required = [
+		{
+			name: "SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL",
+			value: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
+		},
+		{
+			name: "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
+			value:
+				process.env.SUPABASE_SECRET_KEY ??
+				process.env.SUPABASE_SERVICE_ROLE_KEY,
+		},
+	];
+
+	if (!dryRun) {
+		required.push(
+			{ name: "X_API_KEY", value: process.env.X_API_KEY },
+			{ name: "X_API_SECRET", value: process.env.X_API_SECRET },
+			{ name: "X_ACCESS_TOKEN", value: process.env.X_ACCESS_TOKEN },
+			{ name: "X_ACCESS_SECRET", value: process.env.X_ACCESS_SECRET },
+		);
+	}
+
+	return required.filter(({ value }) => !value).map(({ name }) => name);
+};
+
+const getErrorMessage = (error: unknown) =>
+	error instanceof Error ? error.message : "Unknown error";
 
 export async function GET(request: NextRequest) {
 	const cronSecret = process.env.CRON_SECRET;
@@ -82,77 +161,99 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	const twitterClient = createTwitterClient();
-	if (!twitterClient) {
+	const dryRun =
+		process.env.X_TWEET_DRY_RUN === "true" ||
+		request.nextUrl.searchParams.get("dryRun") === "true";
+	const missingEnvironment = getMissingEnvironment(dryRun);
+	if (missingEnvironment.length > 0) {
 		return NextResponse.json(
-			{ error: "X API credentials are not configured" },
+			{
+				error: "Cron environment is not configured",
+				missing: missingEnvironment,
+			},
 			{ status: 500 },
 		);
 	}
 
 	const now = new Date();
 	const phaseInfo = getMoonPhaseWithTiming(now);
-	const nextChangeNoonUtc = toUtcNoon(phaseInfo.current.endDate);
-	const preTweetTarget = new Date(nextChangeNoonUtc.getTime() - 2 * DAY_MS);
-
-	const tweetsToSend: Array<{
-		type: TweetType;
-		phase: typeof phaseInfo.next;
-		targetDate: Date;
-	}> = [];
-
-	if (isWithinWindow(now, preTweetTarget)) {
-		tweetsToSend.push({
-			type: "pre",
-			phase: phaseInfo.next,
-			targetDate: preTweetTarget,
-		});
-	}
-
-	if (isSameUtcDate(now, phaseInfo.current.startDate)) {
-		const currentStartNoonUtc = toUtcNoon(phaseInfo.current.startDate);
-		if (isWithinWindow(now, currentStartNoonUtc)) {
-			tweetsToSend.push({
-				type: "noon",
-				phase: phaseInfo.current,
-				targetDate: currentStartNoonUtc,
-			});
-		}
-	} else if (isSameUtcDate(now, phaseInfo.current.endDate)) {
-		if (isWithinWindow(now, nextChangeNoonUtc)) {
-			tweetsToSend.push({
-				type: "noon",
-				phase: phaseInfo.next,
-				targetDate: nextChangeNoonUtc,
-			});
-		}
-	}
+	const scheduledTweets = getScheduledTweets(phaseInfo);
+	const tweetsToSend = scheduledTweets
+		.filter((tweet) => isDue(tweet, now))
+		.sort(
+			(left, right) => left.targetDate.getTime() - right.targetDate.getTime(),
+		);
 
 	if (tweetsToSend.length === 0) {
+		const nextTargets = scheduledTweets
+			.filter((tweet) => tweet.targetDate.getTime() > now.getTime())
+			.sort(
+				(left, right) => left.targetDate.getTime() - right.targetDate.getTime(),
+			)
+			.map((tweet) => ({
+				type: tweet.type,
+				phase: tweet.phase.name,
+				at: tweet.targetDate.toISOString(),
+			}));
+
 		return NextResponse.json({
 			status: "idle",
 			now: now.toISOString(),
-			nextChangeNoonUtc: nextChangeNoonUtc.toISOString(),
-			preTweetTarget: preTweetTarget.toISOString(),
+			nextTargets,
 		});
 	}
 
 	const supabase = createAdminClient();
-	const results = [];
+	const twitterClient = dryRun ? null : createTwitterClient();
+	const results: Array<Record<string, unknown>> = [];
 
 	for (const tweet of tweetsToSend) {
 		const dateKey = toDateKey(tweet.targetDate);
 
-		// Check if already sent
-		const { data: existing } = await supabase
-			.from("sent_tweets")
-			.select("id")
-			.eq("tweet_type", tweet.type)
-			.eq("phase_name", tweet.phase.name)
-			.eq("target_date", dateKey)
-			.maybeSingle();
+		const text = buildTweetText(tweet, now);
 
-		if (existing) {
+		if (dryRun) {
+			const { data: existing, error: lookupError } = await supabase
+				.from("sent_tweets")
+				.select("id")
+				.eq("tweet_type", tweet.type)
+				.eq("phase_name", tweet.phase.name)
+				.eq("target_date", dateKey)
+				.maybeSingle();
+
+			if (lookupError) {
+				results.push({
+					type: tweet.type,
+					phase: tweet.phase.name,
+					status: "error",
+					step: "dedup_lookup",
+					error: lookupError.message,
+				});
+				continue;
+			}
+
+			results.push({
+				type: tweet.type,
+				phase: tweet.phase.name,
+				status: existing ? "skipped" : "dry_run",
+				...(existing ? { reason: "already_sent" } : { text }),
+			});
+			continue;
+		}
+
+		// Reserve the unique event before posting so duplicate cron invocations
+		// cannot both publish it.
+		const { data: reservation, error: reservationError } = await supabase
+			.from("sent_tweets")
+			.insert({
+				tweet_type: tweet.type,
+				phase_name: tweet.phase.name,
+				target_date: dateKey,
+			})
+			.select("id")
+			.single();
+
+		if (reservationError?.code === "23505") {
 			results.push({
 				type: tweet.type,
 				phase: tweet.phase.name,
@@ -162,26 +263,40 @@ export async function GET(request: NextRequest) {
 			continue;
 		}
 
-		const text = buildTweetText(tweet.type, tweet.phase);
-
-		if (process.env.X_TWEET_DRY_RUN === "true") {
+		if (reservationError || !reservation) {
 			results.push({
 				type: tweet.type,
 				phase: tweet.phase.name,
-				status: "dry_run",
-				text,
+				status: "error",
+				step: "dedup_reservation",
+				error: reservationError?.message ?? "Reservation returned no row",
 			});
 			continue;
 		}
 
 		try {
+			if (!twitterClient) {
+				throw new Error("X API client is not available");
+			}
+
 			const response = await twitterClient.v2.tweet(text);
-			await supabase.from("sent_tweets").insert({
-				tweet_type: tweet.type,
-				phase_name: tweet.phase.name,
-				target_date: dateKey,
-				tweet_id: response.data.id,
-			});
+			const { error: recordError } = await supabase
+				.from("sent_tweets")
+				.update({ tweet_id: response.data.id })
+				.eq("id", reservation.id);
+
+			if (recordError) {
+				results.push({
+					type: tweet.type,
+					phase: tweet.phase.name,
+					status: "error",
+					step: "record_post",
+					id: response.data.id,
+					error: recordError.message,
+				});
+				continue;
+			}
+
 			results.push({
 				type: tweet.type,
 				phase: tweet.phase.name,
@@ -190,20 +305,33 @@ export async function GET(request: NextRequest) {
 			});
 		} catch (error) {
 			console.error("Failed to send tweet", error);
+			const { error: releaseError } = await supabase
+				.from("sent_tweets")
+				.delete()
+				.eq("id", reservation.id)
+				.is("tweet_id", null);
+
 			results.push({
 				type: tweet.type,
 				phase: tweet.phase.name,
 				status: "error",
-				error: error instanceof Error ? error.message : "Unknown error",
+				step: "post_to_x",
+				error: getErrorMessage(error),
+				...(releaseError
+					? { reservationReleaseError: releaseError.message }
+					: {}),
 			});
 		}
 	}
 
-	return NextResponse.json({
-		status: "processed",
-		now: now.toISOString(),
-		nextChangeNoonUtc: nextChangeNoonUtc.toISOString(),
-		preTweetTarget: preTweetTarget.toISOString(),
-		results,
-	});
+	const hasErrors = results.some((result) => result.status === "error");
+
+	return NextResponse.json(
+		{
+			status: hasErrors ? "failed" : "processed",
+			now: now.toISOString(),
+			results,
+		},
+		{ status: hasErrors ? 502 : 200 },
+	);
 }
