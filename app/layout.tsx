@@ -4,7 +4,7 @@ import { Space_Grotesk, Space_Mono } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
 import "./globals.css";
-import { DeferredAnalytics } from "@/components/DeferredAnalytics";
+import { Analytics } from "@vercel/analytics/next";
 import Nav from "@/components/Nav";
 import { Toaster } from "@/components/ui/sonner";
 import { InfoButton } from "./InfoButton";
@@ -170,7 +170,7 @@ export default function RootLayout({
 				</div>
 
 				<Toaster />
-				<DeferredAnalytics />
+				<Analytics />
 			</body>
 		</html>
 	);
