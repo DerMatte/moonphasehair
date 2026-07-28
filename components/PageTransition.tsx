@@ -13,10 +13,12 @@ export default function PageTransition({ children }: PageTransitionProps) {
 	const shouldReduceMotion = useReducedMotion();
 	const transition = shouldReduceMotion
 		? { duration: 0 }
-		: { duration: 0.35, ease: [0.4, 0.2, 0.2, 1] as const };
+		: { duration: 0.25, ease: [0.4, 0.2, 0.2, 1] as const };
 
 	return (
-		<AnimatePresence mode="popLayout">
+		// `wait` finishes the exit fade before mounting the next route (or its
+		// loading skeleton), so the main column never collapses mid-transition.
+		<AnimatePresence mode="wait" initial={false}>
 			<motion.div
 				key={pathname}
 				initial={shouldReduceMotion ? false : { opacity: 0 }}
@@ -28,7 +30,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
 					opacity: 0,
 					transition,
 				}}
-				className="h-full"
+				className="h-full min-h-[50vh]"
 				style={{
 					willChange: "opacity",
 				}}
