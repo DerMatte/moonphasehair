@@ -1,8 +1,8 @@
 import { Brain, Calendar, Clock, Heart, Moon, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
-import { connection } from "next/server";
 import { Suspense } from "react";
 import BigMoon from "@/components/BigMoon";
+import { BigMoonSkeleton } from "@/components/skeletons/page-skeletons";
 import {
 	Card,
 	CardContent,
@@ -10,10 +10,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-	getMoonPhaseWithTiming,
-	getNextMoonPhaseOccurrence,
-} from "@/lib/MoonPhaseCalculator";
+	getCurrentMoonPhaseData,
+	getNextFullMoonDate,
+} from "@/lib/get-current-moon-data";
 import { formatDateTime } from "@/lib/utils";
 import FastingClient from "./fasting-client";
 import FastingQuickTips from "./fasting-quick-tips";
@@ -26,57 +27,22 @@ export const metadata: Metadata = {
 		title: "Full Moon Fasting",
 		description:
 			"Align your fasting practice with the lunar cycle for optimal results and get rid of all the nasty parasites.",
-		images: [
-			"https://www.moonphasehair.com/full-moon-fasting/opengraph-image.png",
-		],
+		images: ["https://www.[REDACTED]/full-moon-fasting/opengraph-image.png"],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Full Moon Fasting",
 		description:
 			"Align your fasting practice with the lunar cycle for optimal results and get rid of all the nasty parasites.",
-		images: [
-			"https://www.moonphasehair.com/full-moon-fasting/twitter-image.png",
-		],
-		// site: "@moonphasehairbot",
-		// creator: "@moonphasehairbot",
-		// creatorId: "17180874",
-		// siteId: "17180874",
+		images: ["https://www.[REDACTED]/full-moon-fasting/twitter-image.png"],
 	},
 };
 
 export default function FastingPage() {
 	return (
-		<Suspense fallback={<FastingPageFallback />}>
-			<CurrentFastingPage />
-		</Suspense>
-	);
-}
-
-async function CurrentFastingPage() {
-	// The next fasting window is time-sensitive and must be calculated for the
-	// current request rather than captured inside a long-lived cache entry.
-	await connection();
-
-	// Get current moon phase data and next full moon
-	const moonData = getMoonPhaseWithTiming(new Date());
-
-	// Find next full moon
-	let nextFullMoon: Date | null = null;
-	if (moonData.current.name === "Full Moon") {
-		// If we're currently in full moon, use the peak (middle of phase)
-		const phaseStart = moonData.current.startDate;
-		const phaseEnd = moonData.current.endDate;
-		const phaseDuration = phaseEnd.getTime() - phaseStart.getTime();
-		nextFullMoon = new Date(phaseStart.getTime() + phaseDuration / 2);
-	} else {
-		// Find next full moon occurrence
-		nextFullMoon = getNextMoonPhaseOccurrence("Full Moon", new Date());
-	}
-
-	return (
 		<div className="min-h-screen">
 			<div className="w-full max-w-7xl mx-auto px-4 py-8">
+				{/* Static shell paints immediately */}
 				<h1 className="text-4xl md:text-5xl font-bold text-center mb-8">
 					Full Moon Fasting
 				</h1>
@@ -86,43 +52,17 @@ async function CurrentFastingPage() {
 				</p>
 
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-					{/* First Column - Fasting Info & Next Full Moon */}
 					<div className="space-y-6">
-						{/* Next Full Moon Card */}
-						<Card className="bg-neutral-50">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Calendar className="w-5 h-5" />
-									Next Full Moon
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-4">
-									<div className="text-2xl font-semibold">
-										{nextFullMoon
-											? formatDateTime(nextFullMoon)
-											: "Calculating..."}
-									</div>
-									{moonData.current.name === "Full Moon" ? (
-										<div className="text-sm text-green-600 font-medium flex items-center gap-2">
-											<Moon className="w-4 h-4" />
-											Currently in Full Moon phase - Perfect time to fast!
-										</div>
-									) : (
-										<div className="text-sm text-muted-foreground">
-											Prepare for your next fasting opportunity
-										</div>
-									)}
-								</div>
-							</CardContent>
-						</Card>
+						<Suspense fallback={<NextFullMoonCardSkeleton />}>
+							<NextFullMoonCard />
+						</Suspense>
 
-						{/* Fasting Benefits Card */}
+						{/* Static benefits — no data dependency */}
 						<Card className="bg-neutral-50">
 							<CardHeader>
 								<CardTitle>Why Fast During Full Moon?</CardTitle>
 								<CardDescription>
-									The full moon's gravitational pull affects our bodies in
+									The full moon&apos;s gravitational pull affects our bodies in
 									profound ways
 								</CardDescription>
 							</CardHeader>
@@ -137,9 +77,9 @@ async function CurrentFastingPage() {
 												Enhanced Detoxification
 											</h4>
 											<p className="text-sm text-muted-foreground">
-												The moon's gravitational peak enhances your body's
-												natural detox processes, making it the ideal time for
-												cleansing through fasting.
+												The moon&apos;s gravitational peak enhances your
+												body&apos;s natural detox processes, making it the ideal
+												time for cleansing through fasting.
 											</p>
 										</div>
 									</div>
@@ -164,8 +104,9 @@ async function CurrentFastingPage() {
 										<div>
 											<h4 className="font-semibold mb-1">Hormonal Balance</h4>
 											<p className="text-sm text-muted-foreground">
-												Align your body's rhythms with lunar cycles for improved
-												sleep, mood regulation, and overall hormonal health.
+												Align your body&apos;s rhythms with lunar cycles for
+												improved sleep, mood regulation, and overall hormonal
+												health.
 											</p>
 										</div>
 									</div>
@@ -178,7 +119,7 @@ async function CurrentFastingPage() {
 											<h4 className="font-semibold mb-1">Ancient Wisdom</h4>
 											<p className="text-sm text-muted-foreground">
 												Connect with ancestral practices that have recognized
-												the moon's influence on human health for millennia.
+												the moon&apos;s influence on human health for millennia.
 											</p>
 										</div>
 									</div>
@@ -187,33 +128,106 @@ async function CurrentFastingPage() {
 						</Card>
 					</div>
 
-					{/* Second Column - Big Moon */}
 					<div className="flex items-center justify-center">
 						<div className="w-full max-w-md">
-							<BigMoon phase={moonData.current.lunarAgePercent} />
+							<Suspense fallback={<BigMoonSkeleton />}>
+								<CurrentFastingMoon />
+							</Suspense>
 						</div>
 					</div>
 				</div>
 
-				{/* Bottom Section - Fasting Client spanning full width */}
 				<div className="w-full">
-					<FastingClient
-						nextFullMoon={nextFullMoon?.toISOString() || null}
-						quickTips={<FastingQuickTips />}
-					/>
+					<Suspense fallback={<FastingClientSkeleton />}>
+						<FastingClientSection />
+					</Suspense>
 				</div>
 			</div>
 		</div>
 	);
 }
 
-function FastingPageFallback() {
+async function NextFullMoonCard() {
+	const [moonData, nextFullMoon] = await Promise.all([
+		getCurrentMoonPhaseData(),
+		getNextFullMoonDate(),
+	]);
+
+	return (
+		<Card className="bg-neutral-50">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Calendar className="w-5 h-5" />
+					Next Full Moon
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="space-y-4">
+					<div className="text-2xl font-semibold">
+						{nextFullMoon ? formatDateTime(nextFullMoon) : "Calculating..."}
+					</div>
+					{moonData.current.name === "Full Moon" ? (
+						<div className="text-sm text-green-600 font-medium flex items-center gap-2">
+							<Moon className="w-4 h-4" />
+							Currently in Full Moon phase - Perfect time to fast!
+						</div>
+					) : (
+						<div className="text-sm text-muted-foreground">
+							Prepare for your next fasting opportunity
+						</div>
+					)}
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+async function CurrentFastingMoon() {
+	const moonData = await getCurrentMoonPhaseData();
+	return <BigMoon phase={moonData.current.lunarAgePercent} />;
+}
+
+async function FastingClientSection() {
+	const nextFullMoon = await getNextFullMoonDate();
+
+	return (
+		<FastingClient
+			nextFullMoon={nextFullMoon?.toISOString() || null}
+			quickTips={<FastingQuickTips />}
+		/>
+	);
+}
+
+function NextFullMoonCardSkeleton() {
 	return (
 		<div
-			className="flex min-h-[50vh] items-center justify-center p-4 text-sm text-muted-foreground"
-			role="status"
+			className="rounded-xl border border-neutral-200 bg-neutral-50 p-6 space-y-4"
+			aria-hidden="true"
 		>
-			Loading current fasting window…
+			<div className="flex items-center gap-2">
+				<Skeleton className="size-5 bg-neutral-200" />
+				<Skeleton className="h-5 w-36 bg-neutral-200" />
+			</div>
+			<Skeleton className="h-8 w-56 bg-neutral-200" />
+			<Skeleton className="h-4 w-64 bg-neutral-200" />
+		</div>
+	);
+}
+
+function FastingClientSkeleton() {
+	return (
+		<div
+			className="w-full rounded-xl border border-neutral-200 bg-neutral-50 p-6 space-y-4 min-h-[280px]"
+			aria-hidden="true"
+		>
+			<Skeleton className="h-6 w-48 bg-neutral-200" />
+			<Skeleton className="h-4 w-72 bg-neutral-200" />
+			<div className="grid gap-3 sm:grid-cols-3 pt-2">
+				<Skeleton className="h-10 w-full bg-neutral-200" />
+				<Skeleton className="h-10 w-full bg-neutral-200" />
+				<Skeleton className="h-10 w-full bg-neutral-200" />
+			</div>
+			<Skeleton className="h-11 w-40 bg-neutral-200" />
 		</div>
 	);
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import UserSubscriptions from "@/components/UserSubscriptions";
+import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -73,11 +74,7 @@ async function ProfileContent() {
 
 export default function ProfilePage() {
 	return (
-		<Suspense
-			fallback={
-				<div className="flex min-h-[50vh] animate-pulse items-center justify-center" />
-			}
-		>
+		<Suspense fallback={<ProfilePageSkeleton />}>
 			<ProfileContent />
 		</Suspense>
 	);

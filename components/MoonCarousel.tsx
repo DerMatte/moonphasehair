@@ -115,16 +115,4 @@ export default function MoonCarousel({
 	);
 }
 
-export function MoonCarouselSkeleton() {
-	return (
-		<div className="mt-12 mb-8">
-			<h3 className="text-2xl font-bold font-sans mb-6">Moon Phases</h3>
-			<div className="flex flex-col gap-4">
-				<div className="h-12 w-full bg-neutral-200 animate-pulse rounded-md" />
-				<div className="h-12 w-full bg-neutral-200 animate-pulse rounded-md" />
-				<div className="h-12 w-full bg-neutral-200 animate-pulse rounded-md" />
-				<div className="h-12 w-full bg-neutral-200 animate-pulse rounded-md" />
-			</div>
-		</div>
-	);
-}
+export { MoonCarouselSkeleton } from "@/components/skeletons/page-skeletons";
