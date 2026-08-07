@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import dynamic from "next/dynamic";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
+import Link from "next/link";
 import { Suspense } from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-
-import dynamic from "next/dynamic";
-import Link from "next/link";
 import Nav from "@/components/Nav";
 import { Toaster } from "@/components/ui/sonner";
 import { InfoButton } from "./InfoButton";
@@ -114,7 +113,14 @@ export default function RootLayout({
 						<Suspense
 							fallback={
 								<header className="w-full">
-									<div className="flex flex-row items-center justify-between px-6 sm:px-8 py-4 sm:py-8 border-b border-neutral-200 min-h-[60px] animate-pulse" />
+									<div className="flex flex-row items-center justify-between px-6 sm:px-8 py-4 sm:py-8 border-b border-neutral-200 min-h-[76px] sm:min-h-[104px]">
+										<div className="h-12 w-12 animate-pulse rounded-md bg-neutral-200" />
+										<div className="hidden md:flex items-center gap-3">
+											<div className="h-8 w-20 animate-pulse rounded-md bg-neutral-200" />
+											<div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
+										</div>
+										<div className="md:hidden h-8 w-20 animate-pulse rounded-md bg-neutral-200" />
+									</div>
 								</header>
 							}
 						>
