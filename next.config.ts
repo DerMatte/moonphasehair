@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
 				],
 			},
 			{
-				source: "/api/v1",
+				source: "/api",
 				headers: [
 					{
 						key: "Access-Control-Allow-Origin",
@@ -39,29 +39,12 @@ const nextConfig: NextConfig = {
 					},
 					{
 						key: "Access-Control-Allow-Headers",
-						value: "Content-Type, Authorization, MCP-Protocol-Version, Accept",
+						value: "Content-Type, Authorization, Accept",
 					},
 				],
 			},
 			{
-				source: "/api/v1/:path*",
-				headers: [
-					{
-						key: "Access-Control-Allow-Origin",
-						value: "*",
-					},
-					{
-						key: "Access-Control-Allow-Methods",
-						value: "GET, OPTIONS",
-					},
-					{
-						key: "Access-Control-Allow-Headers",
-						value: "Content-Type, Authorization, MCP-Protocol-Version, Accept",
-					},
-				],
-			},
-			{
-				source: "/api/mcp",
+				source: "/mcp",
 				headers: [
 					{
 						key: "Access-Control-Allow-Origin",

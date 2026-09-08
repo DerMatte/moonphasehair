@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { markdownContentType, wantsMarkdown } from "../lib/accept-markdown.ts";
 import {
 	illuminationFromAgePercent,
 	parseMoonDate,
@@ -54,11 +55,31 @@ test("phase slugs and illumination helpers stay stable", () => {
 	assert.ok(Math.abs(illuminationFromAgePercent(0.5) - 1) < 1e-10);
 });
 
+test("markdown accept headers are detected without matching HTML browsers", () => {
+	assert.equal(wantsMarkdown(null), false);
+	assert.equal(
+		wantsMarkdown(
+			"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+		),
+		false,
+	);
+	assert.equal(wantsMarkdown("text/markdown"), true);
+	assert.equal(wantsMarkdown("application/markdown"), true);
+	assert.equal(wantsMarkdown("text/html, text/markdown;q=0.8"), true);
+	assert.equal(
+		markdownContentType("application/markdown"),
+		"application/markdown; charset=utf-8",
+	);
+	assert.equal(
+		markdownContentType("text/markdown"),
+		"text/markdown; charset=utf-8",
+	);
+});
+
 test("public API and MCP paths stay unauthenticated", () => {
 	assert.equal(isPublicPath("/developers"), true);
-	assert.equal(isPublicPath("/api/v1"), true);
-	assert.equal(isPublicPath("/api/v1/moon"), true);
-	assert.equal(isPublicPath("/api/mcp"), true);
+	assert.equal(isPublicPath("/api"), true);
+	assert.equal(isPublicPath("/mcp"), true);
 	assert.equal(isPublicPath("/llms.txt"), true);
 	assert.equal(isPublicPath("/profile"), false);
 	assert.equal(isPublicPath("/api/subscribe"), false);

@@ -8,48 +8,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { MOON_PHASE_NAMES } from "@/lib/public-moon-api";
 
 export const metadata: Metadata = {
 	title: "Developers",
 	description:
 		"Free public REST API and MCP server for moon phases and hair-cutting guidance.",
 };
-
-const endpoints = [
-	{
-		method: "GET",
-		path: "/api/v1",
-		detail: "Discovery catalog, MCP URL, and endpoint list",
-	},
-	{
-		method: "GET",
-		path: "/api/v1/moon",
-		detail: "Current phase, illumination, timing, and hair advice",
-		query: "?date=2026-09-08",
-	},
-	{
-		method: "GET",
-		path: "/api/v1/phases",
-		detail: "All eight phases with traditional hair-cutting guides",
-	},
-	{
-		method: "GET",
-		path: "/api/v1/next",
-		detail: "Next occurrence of a named phase",
-		query: "?phase=Full%20Moon",
-	},
-	{
-		method: "GET",
-		path: "/api/v1/fasting",
-		detail: "Full-moon fasting window and recommendation",
-	},
-	{
-		method: "GET",
-		path: "/api/v1/openapi",
-		detail: "OpenAPI 3.1 description of the public API",
-	},
-] as const;
 
 const mcpTools = [
 	{
@@ -84,119 +48,68 @@ export default function DevelopersPage() {
 				API & MCP
 			</h1>
 			<p className="mx-auto mt-4 max-w-2xl text-pretty text-center text-lg text-muted-foreground">
-				Use the same moon-phase timing and hair-cutting guidance as the app.
-				CORS is open. Attribution is appreciated, not required.
+				Two public endpoints. CORS is open. No authentication.
 			</p>
 
 			<div className="mt-10 grid gap-4 sm:grid-cols-2">
 				<Card className="bg-neutral-50">
 					<CardHeader>
 						<CardTitle>REST</CardTitle>
-						<CardDescription>
-							JSON over HTTPS, cacheable, no auth
-						</CardDescription>
+						<CardDescription>JSON moon phase and hair advice</CardDescription>
 					</CardHeader>
-					<CardContent className="text-sm text-neutral-700">
-						Start at{" "}
-						<Link href="/api/v1" className="underline underline-offset-4">
-							/api/v1
-						</Link>{" "}
-						or fetch{" "}
-						<Link href="/api/v1/moon" className="underline underline-offset-4">
-							/api/v1/moon
-						</Link>
-						.
+					<CardContent className="space-y-3 text-sm text-neutral-700">
+						<p>
+							<Link href="/api" className="underline underline-offset-4">
+								GET /api
+							</Link>
+							{" — "}
+							optional{" "}
+							<code className="rounded bg-neutral-200 px-1.5 py-0.5">
+								?date=
+							</code>
+						</p>
+						<OriginConfig path="/api" />
 					</CardContent>
 				</Card>
 				<Card className="bg-neutral-50">
 					<CardHeader>
 						<CardTitle>MCP</CardTitle>
 						<CardDescription>
-							Streamable HTTP for Cursor, Claude, and other agents
+							Separate Streamable HTTP server for agents
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-sm text-neutral-700">
-						Connect to{" "}
-						<code className="rounded bg-neutral-200 px-1.5 py-0.5">
-							/api/mcp
-						</code>
-						. No OAuth or token required.
+					<CardContent className="space-y-3 text-sm text-neutral-700">
+						<p>
+							Connect to{" "}
+							<code className="rounded bg-neutral-200 px-1.5 py-0.5">/mcp</code>
+							. No OAuth or token required.
+						</p>
+						<OriginConfig path="/mcp" kind="mcp" />
 					</CardContent>
 				</Card>
 			</div>
 
-			<section className="mt-14 space-y-6" aria-labelledby="rest-endpoints">
-				<h2 id="rest-endpoints" className="text-2xl font-bold font-sans">
-					REST endpoints
-				</h2>
-				<ul className="space-y-3">
-					{endpoints.map((endpoint) => (
-						<li
-							key={endpoint.path}
-							className="rounded-xl border border-neutral-200 bg-neutral-50 p-4"
-						>
-							<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-								<span className="text-xs font-bold tracking-wide text-neutral-500">
-									{endpoint.method}
-								</span>
-								<Link
-									href={
-										"query" in endpoint
-											? `${endpoint.path}${endpoint.query}`
-											: endpoint.path
-									}
-									className="font-mono text-sm underline-offset-4 hover:underline"
-								>
-									{endpoint.path}
-									{"query" in endpoint ? (
-										<span className="text-neutral-500">{endpoint.query}</span>
-									) : null}
-								</Link>
-							</div>
-							<p className="mt-2 text-sm text-neutral-600">{endpoint.detail}</p>
-						</li>
-					))}
-				</ul>
-				<div>
-					<p className="mb-2 text-sm font-medium text-neutral-700">Example</p>
-					<OriginConfig path="/api/v1/moon" />
-				</div>
-			</section>
-
-			<section className="mt-14 space-y-4" aria-labelledby="phase-names">
-				<h2 id="phase-names" className="text-2xl font-bold font-sans">
-					Phase names
+			<section className="mt-14 space-y-4" aria-labelledby="markdown">
+				<h2 id="markdown" className="text-2xl font-bold font-sans">
+					Website as Markdown
 				</h2>
 				<p className="text-sm text-neutral-600">
-					<code className="rounded bg-neutral-200 px-1.5 py-0.5">phase</code>{" "}
-					accepts official names or slugs such as{" "}
+					Public pages also respond to{" "}
 					<code className="rounded bg-neutral-200 px-1.5 py-0.5">
-						full-moon
+						Accept: text/markdown
+					</code>{" "}
+					or{" "}
+					<code className="rounded bg-neutral-200 px-1.5 py-0.5">
+						Accept: application/markdown
 					</code>
 					.
 				</p>
-				<ul className="flex flex-wrap gap-2">
-					{MOON_PHASE_NAMES.map((name) => (
-						<li
-							key={name}
-							className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-sm"
-						>
-							{name}
-						</li>
-					))}
-				</ul>
 			</section>
 
-			<section className="mt-14 space-y-4" aria-labelledby="mcp">
-				<h2 id="mcp" className="text-2xl font-bold font-sans">
-					MCP server
+			<section className="mt-14 space-y-4" aria-labelledby="mcp-tools">
+				<h2 id="mcp-tools" className="text-2xl font-bold font-sans">
+					MCP tools
 				</h2>
-				<p className="text-sm text-neutral-600">
-					Add this to Cursor{" "}
-					<code className="rounded bg-neutral-200 px-1.5 py-0.5">mcp.json</code>
-					, Claude, or any MCP client that supports HTTP:
-				</p>
-				<OriginConfig path="/api/mcp" kind="mcp" />
 				<ul className="space-y-2">
 					{mcpTools.map((tool) => (
 						<li key={tool.name} className="text-sm">
@@ -206,32 +119,6 @@ export default function DevelopersPage() {
 							<span className="text-neutral-600"> — {tool.detail}</span>
 						</li>
 					))}
-				</ul>
-			</section>
-
-			<section className="mt-14 space-y-3" aria-labelledby="machine-docs">
-				<h2 id="machine-docs" className="text-2xl font-bold font-sans">
-					Machine-readable docs
-				</h2>
-				<ul className="list-disc space-y-2 pl-6 text-sm text-neutral-700">
-					<li>
-						<Link href="/llms.txt" className="underline underline-offset-4">
-							/llms.txt
-						</Link>
-					</li>
-					<li>
-						<Link
-							href="/api/v1/openapi"
-							className="underline underline-offset-4"
-						>
-							/api/v1/openapi
-						</Link>
-					</li>
-					<li>
-						<Link href="/api/v1" className="underline underline-offset-4">
-							/api/v1
-						</Link>
-					</li>
 				</ul>
 			</section>
 		</div>

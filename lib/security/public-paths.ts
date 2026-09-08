@@ -4,6 +4,8 @@ const PUBLIC_EXACT_PATHS = new Set([
 	"/full-moon-fasting",
 	"/developers",
 	"/llms.txt",
+	"/api",
+	"/mcp",
 	"/auth/login",
 	"/auth/callback",
 	"/auth/auth-code-error",
@@ -15,7 +17,7 @@ const PUBLIC_EXACT_PATHS = new Set([
 	"/api/cron/x-tweets",
 ]);
 
-const PUBLIC_PREFIXES = ["/auth/", "/api/v1", "/api/mcp", "/.well-known/"];
+const PUBLIC_PREFIXES = ["/auth/", "/mcp", "/.well-known/"];
 
 export function isPublicPath(pathname: string): boolean {
 	if (PUBLIC_EXACT_PATHS.has(pathname)) {

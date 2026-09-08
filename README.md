@@ -15,11 +15,10 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 The moon-phase and hair-cutting data is public. No API key is required.
 
+- REST: `/api`
+- MCP: `/mcp`
 - Docs: `/developers`
-- REST catalog: `/api/v1`
-- Current moon: `/api/v1/moon`
-- MCP: `/api/mcp`
-- Machine docs: `/llms.txt`
+- Markdown pages: `Accept: text/markdown` or `Accept: application/markdown`
 
 Cursor / Claude MCP config:
 
@@ -27,7 +26,7 @@ Cursor / Claude MCP config:
 {
   "mcpServers": {
     "moonphase-hair": {
-      "url": "https://<your-domain>/api/mcp"
+      "url": "https://<your-domain>/mcp"
     }
   }
 }

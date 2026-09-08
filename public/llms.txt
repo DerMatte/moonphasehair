@@ -2,10 +2,10 @@
 
 Moonphase Hair is a free web app for cutting hair according to the lunar cycle.
 
+REST API: /api
+MCP: /mcp
 Docs: /developers
-REST API: /api/v1
-OpenAPI: /api/v1/openapi
-MCP: /api/mcp
+Markdown: send Accept: text/markdown or Accept: application/markdown
 
 ## Access
 
@@ -14,16 +14,25 @@ CORS is enabled for browser clients.
 
 ## REST
 
-- GET /api/v1 — discovery catalog
-- GET /api/v1/moon?date= — current or dated moon phase, illumination, timing, and hair advice
-- GET /api/v1/phases — all eight phases with hair-cutting guidance
-- GET /api/v1/next?phase=Full%20Moon — next occurrence of a named phase
-- GET /api/v1/fasting — full-moon fasting window
-- GET /api/v1/openapi — OpenAPI 3.1 document
+GET /api
+GET /api?date=2026-09-08
 
-Dates accept ISO-8601, YYYY-MM-DD (UTC midnight), or Unix timestamps.
+Returns the moon phase, illumination, timing, and hair-cutting advice.
+Dates accept ISO-8601, YYYY-MM-DD, or Unix timestamps.
 
-## MCP tools
+## Website as Markdown
+
+Public pages (`/`, `/developers`, `/full-moon-fasting`, `/privacy`) return
+Markdown when the request includes:
+
+- Accept: text/markdown
+- Accept: application/markdown
+
+## MCP
+
+Separate Streamable HTTP server at /mcp.
+
+Tools:
 
 - get_current_moon_phase
 - get_moon_phase
@@ -36,7 +45,7 @@ Cursor example:
 {
   "mcpServers": {
     "moonphase-hair": {
-      "url": "https://<your-domain>/api/mcp"
+      "url": "https://<your-domain>/mcp"
     }
   }
 }

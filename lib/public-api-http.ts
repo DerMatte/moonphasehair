@@ -39,3 +39,13 @@ export function publicApiJson(
 export function publicApiError(status: number, error: string) {
 	return publicApiJson({ error }, { status });
 }
+
+export function resolveRequestOrigin(request: Request): string {
+	const url = new URL(request.url);
+	const forwardedHost = request.headers.get("x-forwarded-host");
+	const forwardedProto = request.headers.get("x-forwarded-proto");
+	if (forwardedHost) {
+		return `${forwardedProto ?? url.protocol.replace(":", "")}://${forwardedHost}`;
+	}
+	return url.origin;
+}

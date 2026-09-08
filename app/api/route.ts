@@ -2,6 +2,7 @@ import {
 	publicApiError,
 	publicApiJson,
 	publicApiOptionsResponse,
+	resolveRequestOrigin,
 } from "@/lib/public-api-http";
 import { getPublicMoonSnapshot, parseMoonDate } from "@/lib/public-moon-api";
 
@@ -17,7 +18,18 @@ export function GET(request: Request) {
 		return publicApiError(400, parsed.error);
 	}
 
-	return publicApiJson(getPublicMoonSnapshot(parsed.date), {
-		cacheSeconds: searchParams.get("date") ? 3600 : 300,
-	});
+	const origin = resolveRequestOrigin(request);
+
+	return publicApiJson(
+		{
+			free: true,
+			authentication: "none",
+			mcp: `${origin}/mcp`,
+			documentation: `${origin}/developers`,
+			...getPublicMoonSnapshot(parsed.date),
+		},
+		{
+			cacheSeconds: searchParams.get("date") ? 3600 : 300,
+		},
+	);
 }
