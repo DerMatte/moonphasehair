@@ -5,7 +5,7 @@
 	"terminals": [
 		{
 			"name": "next-dev",
-			"command": "pnpm dev"
+			"command": "./.cursor/start.sh && pnpm dev"
 		}
 	],
 	"ports": [3000, 54321]
