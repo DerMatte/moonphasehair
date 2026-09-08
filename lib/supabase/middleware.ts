@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/lib/database.types";
+import { isPublicPath } from "@/lib/security/public-paths";
 import { getSupabasePublicEnv } from "./env";
 
 export async function updateSession(request: NextRequest) {
@@ -34,26 +35,8 @@ export async function updateSession(request: NextRequest) {
 		data: { user },
 	} = await supabase.auth.getUser();
 
-	// Public routes that don't require authentication
-	const publicRoutes = [
-		"/",
-		"/privacy",
-		"/full-moon-fasting",
-		"/auth/login",
-		"/auth/callback",
-		"/auth/auth-code-error",
-		"/api/location",
-		"/api/geo",
-		"/api/moon-orientation",
-		"/api/check-reminders",
-		"/api/send-notification",
-		"/api/cron/x-tweets",
-	];
-	const isPublicRoute = publicRoutes.some(
-		(route) =>
-			request.nextUrl.pathname === route ||
-			request.nextUrl.pathname.startsWith("/auth/"),
-	);
+	const pathname = request.nextUrl.pathname;
+	const isPublicRoute = isPublicPath(pathname);
 
 	// If user is not authenticated and trying to access a protected route
 	if (!user && !isPublicRoute) {

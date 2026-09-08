@@ -53,6 +53,17 @@ export function DesktopNavbar({
 					>
 						Full Moon Fasting
 					</Link>
+					<Link
+						href="/developers"
+						aria-current={pathname === "/developers" ? "page" : undefined}
+						className={cn(
+							buttonVariants({ variant: "ghost" }),
+							"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium",
+							pathname === "/developers" && "bg-neutral-200",
+						)}
+					>
+						API
+					</Link>
 					{user && (
 						<Link
 							href="/profile"

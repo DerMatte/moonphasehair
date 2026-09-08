@@ -11,6 +11,28 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Free API & MCP
+
+The moon-phase and hair-cutting data is public. No API key is required.
+
+- Docs: `/developers`
+- REST catalog: `/api/v1`
+- Current moon: `/api/v1/moon`
+- MCP: `/api/mcp`
+- Machine docs: `/llms.txt`
+
+Cursor / Claude MCP config:
+
+```json
+{
+  "mcpServers": {
+    "moonphase-hair": {
+      "url": "https://<your-domain>/api/mcp"
+    }
+  }
+}
+```
+
 ## X API cron tweets
 
 Posting on every moon phase change is already implemented. The Vercel cron job

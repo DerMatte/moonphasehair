@@ -157,6 +157,12 @@ export default function RootLayout({
 								</span>
 								<div className="flex items-center gap-3">
 									<Link
+										href="/developers"
+										className="text-sm underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-800"
+									>
+										API
+									</Link>
+									<Link
 										href="/privacy"
 										className="text-sm underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-800"
 									>

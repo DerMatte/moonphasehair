@@ -173,6 +173,25 @@ export function Navbar({
 									Full Moon Fasting
 								</Link>
 							</motion.div>
+							<motion.div
+								variants={
+									shouldReduceMotion ? reducedLinkVariants : linkVariants
+								}
+								transition={{ delay: shouldReduceMotion ? 0 : 0.15 }}
+							>
+								<Link
+									href="/developers"
+									aria-current={pathname === "/developers" ? "page" : undefined}
+									onClick={() => setIsOpen(false)}
+									className={cn(
+										buttonVariants({ variant: "ghost" }),
+										"px-3 py-1 rounded bg-transparent hover:bg-neutral-300 transition-colors text-sm font-medium w-full flex justify-start items-center",
+										pathname === "/developers" && "bg-neutral-200",
+									)}
+								>
+									API
+								</Link>
+							</motion.div>
 							{user && (
 								<motion.div
 									variants={
