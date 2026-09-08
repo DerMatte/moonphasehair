@@ -33,13 +33,11 @@ export function OriginConfig({
 			: url;
 
 	return (
-		<div className="space-y-3">
-			<div className="flex items-start justify-between gap-3">
-				<pre className="m-0 min-w-0 flex-1 overflow-x-auto rounded-lg bg-neutral-900 p-4 text-xs leading-6 text-neutral-100">
-					<code>{snippet}</code>
-				</pre>
-				<CopyButton text={snippet} />
-			</div>
+		<div className="min-w-0 space-y-2">
+			<pre className="m-0 max-w-full overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-neutral-900 p-3 text-xs leading-6 text-neutral-100">
+				<code>{snippet}</code>
+			</pre>
+			<CopyButton text={snippet} />
 		</div>
 	);
 }
