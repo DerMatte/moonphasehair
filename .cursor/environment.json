@@ -1,0 +1,12 @@
+{
+	"name": "Moon Phase Hair Tracker",
+	"install": "./.cursor/install.sh",
+	"start": "./.cursor/start.sh",
+	"terminals": [
+		{
+			"name": "next-dev",
+			"command": "./.cursor/start.sh && pnpm dev"
+		}
+	],
+	"ports": [3000, 54321]
+}
