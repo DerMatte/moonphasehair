@@ -37,7 +37,7 @@ const endpoints = [
 		method: "GET",
 		path: "/api/v1/next",
 		detail: "Next occurrence of a named phase",
-		query: "?phase=Full Moon",
+		query: "?phase=Full%20Moon",
 	},
 	{
 		method: "GET",
