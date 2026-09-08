@@ -34,9 +34,18 @@ export function OriginConfig({
 
 	return (
 		<div className="min-w-0 space-y-2">
-			<pre className="m-0 max-w-full overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-neutral-900 p-3 text-xs leading-6 text-neutral-100">
-				<code>{snippet}</code>
-			</pre>
+			<div className="min-w-0 w-full overflow-hidden rounded-lg bg-neutral-900 p-3">
+				<code
+					className="block w-full font-mono text-xs leading-6 text-neutral-100"
+					style={{
+						whiteSpace: "pre-wrap",
+						overflowWrap: "anywhere",
+						wordBreak: "break-word",
+					}}
+				>
+					{snippet}
+				</code>
+			</div>
 			<CopyButton text={snippet} />
 		</div>
 	);

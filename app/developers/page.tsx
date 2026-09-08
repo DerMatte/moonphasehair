@@ -51,15 +51,15 @@ export default function DevelopersPage() {
 				Two public endpoints. CORS is open. No authentication.
 			</p>
 
-			<div className="mt-10 grid min-w-0 gap-4 sm:grid-cols-2">
+			<div className="mt-10 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
 				<Card className="min-w-0 overflow-hidden bg-neutral-50">
-					<CardHeader>
+					<CardHeader className="p-4 sm:p-6">
 						<CardTitle>REST</CardTitle>
 						<CardDescription className="text-pretty">
 							JSON moon phase and hair advice
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="min-w-0 space-y-3 text-sm text-neutral-700">
+					<CardContent className="min-w-0 space-y-3 p-4 pt-0 text-sm text-neutral-700 sm:p-6 sm:pt-0">
 						<p className="text-pretty">
 							<Link href="/api" className="underline underline-offset-4">
 								GET /api
@@ -74,13 +74,13 @@ export default function DevelopersPage() {
 					</CardContent>
 				</Card>
 				<Card className="min-w-0 overflow-hidden bg-neutral-50">
-					<CardHeader>
+					<CardHeader className="p-4 sm:p-6">
 						<CardTitle>MCP</CardTitle>
 						<CardDescription className="text-pretty">
 							Separate Streamable HTTP server for agents
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="min-w-0 space-y-3 text-sm text-neutral-700">
+					<CardContent className="min-w-0 space-y-3 p-4 pt-0 text-sm text-neutral-700 sm:p-6 sm:pt-0">
 						<p className="text-pretty">
 							Connect to{" "}
 							<code className="rounded bg-neutral-200 px-1.5 py-0.5">/mcp</code>
