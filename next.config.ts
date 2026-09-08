@@ -27,6 +27,41 @@ const nextConfig: NextConfig = {
 				],
 			},
 			{
+				source: "/api",
+				headers: [
+					{
+						key: "Access-Control-Allow-Origin",
+						value: "*",
+					},
+					{
+						key: "Access-Control-Allow-Methods",
+						value: "GET, OPTIONS",
+					},
+					{
+						key: "Access-Control-Allow-Headers",
+						value: "Content-Type, Authorization, Accept",
+					},
+				],
+			},
+			{
+				source: "/mcp",
+				headers: [
+					{
+						key: "Access-Control-Allow-Origin",
+						value: "*",
+					},
+					{
+						key: "Access-Control-Allow-Methods",
+						value: "GET, POST, DELETE, OPTIONS",
+					},
+					{
+						key: "Access-Control-Allow-Headers",
+						value:
+							"Content-Type, Authorization, MCP-Protocol-Version, Accept, Last-Event-ID",
+					},
+				],
+			},
+			{
 				source: "/sw.js",
 				headers: [
 					{

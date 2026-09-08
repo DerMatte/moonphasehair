@@ -1,7 +1,27 @@
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { markdownContentType, wantsMarkdown } from "@/lib/accept-markdown";
 import { updateSession } from "@/lib/supabase/middleware";
+import { renderWebsiteMarkdown } from "@/lib/website-markdown";
 
 export async function proxy(request: NextRequest) {
+	if (
+		request.method === "GET" &&
+		wantsMarkdown(request.headers.get("accept"))
+	) {
+		const markdown = renderWebsiteMarkdown(request.nextUrl.pathname);
+		if (markdown) {
+			return new NextResponse(markdown, {
+				status: 200,
+				headers: {
+					"Content-Type": markdownContentType(request.headers.get("accept")),
+					Vary: "Accept",
+					"Access-Control-Allow-Origin": "*",
+					"Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+				},
+			});
+		}
+	}
+
 	return await updateSession(request);
 }
 
