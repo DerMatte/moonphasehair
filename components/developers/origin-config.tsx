@@ -33,13 +33,20 @@ export function OriginConfig({
 			: url;
 
 	return (
-		<div className="space-y-3">
-			<div className="flex items-start justify-between gap-3">
-				<pre className="m-0 min-w-0 flex-1 overflow-x-auto rounded-lg bg-neutral-900 p-4 text-xs leading-6 text-neutral-100">
-					<code>{snippet}</code>
-				</pre>
-				<CopyButton text={snippet} />
+		<div className="min-w-0 space-y-2">
+			<div className="min-w-0 w-full overflow-hidden rounded-lg bg-neutral-900 p-3">
+				<code
+					className="block w-full font-mono text-xs leading-6 text-neutral-100"
+					style={{
+						whiteSpace: "pre-wrap",
+						overflowWrap: "anywhere",
+						wordBreak: "break-word",
+					}}
+				>
+					{snippet}
+				</code>
 			</div>
+			<CopyButton text={snippet} />
 		</div>
 	);
 }

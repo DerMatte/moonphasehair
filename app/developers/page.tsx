@@ -40,7 +40,7 @@ const mcpTools = [
 
 export default function DevelopersPage() {
 	return (
-		<div className="mx-auto max-w-3xl px-4 py-8">
+		<div className="mx-auto w-full min-w-0 max-w-3xl px-4 py-8">
 			<p className="text-center text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
 				Free · No API key
 			</p>
@@ -51,14 +51,16 @@ export default function DevelopersPage() {
 				Two public endpoints. CORS is open. No authentication.
 			</p>
 
-			<div className="mt-10 grid gap-4 sm:grid-cols-2">
-				<Card className="bg-neutral-50">
-					<CardHeader>
+			<div className="mt-10 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+				<Card className="min-w-0 overflow-hidden bg-neutral-50">
+					<CardHeader className="p-4 sm:p-6">
 						<CardTitle>REST</CardTitle>
-						<CardDescription>JSON moon phase and hair advice</CardDescription>
+						<CardDescription className="text-pretty">
+							JSON moon phase and hair advice
+						</CardDescription>
 					</CardHeader>
-					<CardContent className="space-y-3 text-sm text-neutral-700">
-						<p>
+					<CardContent className="min-w-0 space-y-3 p-4 pt-0 text-sm text-neutral-700 sm:p-6 sm:pt-0">
+						<p className="text-pretty">
 							<Link href="/api" className="underline underline-offset-4">
 								GET /api
 							</Link>
@@ -71,15 +73,15 @@ export default function DevelopersPage() {
 						<OriginConfig path="/api" />
 					</CardContent>
 				</Card>
-				<Card className="bg-neutral-50">
-					<CardHeader>
+				<Card className="min-w-0 overflow-hidden bg-neutral-50">
+					<CardHeader className="p-4 sm:p-6">
 						<CardTitle>MCP</CardTitle>
-						<CardDescription>
+						<CardDescription className="text-pretty">
 							Separate Streamable HTTP server for agents
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="space-y-3 text-sm text-neutral-700">
-						<p>
+					<CardContent className="min-w-0 space-y-3 p-4 pt-0 text-sm text-neutral-700 sm:p-6 sm:pt-0">
+						<p className="text-pretty">
 							Connect to{" "}
 							<code className="rounded bg-neutral-200 px-1.5 py-0.5">/mcp</code>
 							. No OAuth or token required.
@@ -89,31 +91,31 @@ export default function DevelopersPage() {
 				</Card>
 			</div>
 
-			<section className="mt-14 space-y-4" aria-labelledby="markdown">
+			<section className="mt-14 min-w-0 space-y-4" aria-labelledby="markdown">
 				<h2 id="markdown" className="text-2xl font-bold font-sans">
 					Website as Markdown
 				</h2>
-				<p className="text-sm text-neutral-600">
+				<p className="text-pretty text-sm text-neutral-600">
 					Public pages also respond to{" "}
-					<code className="rounded bg-neutral-200 px-1.5 py-0.5">
+					<code className="break-all rounded bg-neutral-200 px-1.5 py-0.5">
 						Accept: text/markdown
 					</code>{" "}
 					or{" "}
-					<code className="rounded bg-neutral-200 px-1.5 py-0.5">
+					<code className="break-all rounded bg-neutral-200 px-1.5 py-0.5">
 						Accept: application/markdown
 					</code>
 					.
 				</p>
 			</section>
 
-			<section className="mt-14 space-y-4" aria-labelledby="mcp-tools">
+			<section className="mt-14 min-w-0 space-y-4" aria-labelledby="mcp-tools">
 				<h2 id="mcp-tools" className="text-2xl font-bold font-sans">
 					MCP tools
 				</h2>
 				<ul className="space-y-2">
 					{mcpTools.map((tool) => (
-						<li key={tool.name} className="text-sm">
-							<code className="rounded bg-neutral-200 px-1.5 py-0.5">
+						<li key={tool.name} className="min-w-0 text-sm">
+							<code className="break-all rounded bg-neutral-200 px-1.5 py-0.5">
 								{tool.name}
 							</code>
 							<span className="text-neutral-600"> — {tool.detail}</span>
