@@ -20,7 +20,8 @@ if ! command -v docker >/dev/null 2>&1; then
 	log "Installing Docker + fuse-overlayfs + iptables"
 	sudo apt-get update -qq
 	sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
-		docker.io docker-compose-v2 fuse-overlayfs uidmap iptables || true
+		-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold \
+		docker.io docker-compose-v2 fuse-overlayfs uidmap iptables
 fi
 
 if ! command -v supabase >/dev/null 2>&1; then
